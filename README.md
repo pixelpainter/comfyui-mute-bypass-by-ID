@@ -18,7 +18,7 @@ In the example below, to optimize the Subgraph, only the switch itself has been 
 Example of a Subgraph Canvas with 2 single mute/bypass nodes which can used to switch between a single or dual clip setup by muting one of the clips nodes. The widgets have been promoted.
 <img width="1252" height="436" alt="Subgraph promoted" src="https://github.com/user-attachments/assets/4ab0b889-b27e-4512-ba08-3a2db4734e98" />
 
-Same setup as linked widgets
+The same setup as above with linked widgets
 <img width="1580" height="725" alt="subgraph linked widgets" src="https://github.com/user-attachments/assets/5fbab389-4750-4d64-8ed4-3cf83afec5c8" />
 
 The front facing Subgraph node with widgets, only the mute/bypass switch widget has been linked/promoted to the Subgraph
