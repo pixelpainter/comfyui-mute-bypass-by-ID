@@ -15,7 +15,7 @@ image 1 - promoted widgets / image 2 - linked widgets. Either method will work t
 
 In the example below, to optimize the Subgraph, only the switch itself has been promoted/linked to the Subgraph node to minimize the Subgraph real estate. The settings can be adjusted on the Subgraph canvas. If you choose, all of the node widgets can be linked or promoted.
 
-Example of a Subgraph Canvas with 2 single mute/bypass nodes which can switch between a single or dual clip setup. The widgets have been promoted.
+Example of a Subgraph Canvas with 2 single mute/bypass nodes which can used to switch between a single or dual clip setup by muting one of the clips nodes. The widgets have been promoted.
 <img width="1252" height="436" alt="Subgraph promoted" src="https://github.com/user-attachments/assets/4ab0b889-b27e-4512-ba08-3a2db4734e98" />
 
 Same setup as linked widgets
