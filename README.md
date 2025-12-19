@@ -21,7 +21,7 @@ Example of a Subgraph Canvas with 2 single mute/bypass nodes which can used to s
 Same setup as linked widgets
 <img width="1580" height="725" alt="subgraph linked widgets" src="https://github.com/user-attachments/assets/5fbab389-4750-4d64-8ed4-3cf83afec5c8" />
 
-The front facing Subgraph node with widgets, only the mute/bypass switch widhget has been linked/promoted to the Subgraph
+The front facing Subgraph node with widgets, only the mute/bypass switch widget has been linked/promoted to the Subgraph
 <img width="670" height="500" alt="Subgraph Node with widget switches" src="https://github.com/user-attachments/assets/631d777d-f183-4cca-aef7-267f17823840" />
 
 The 2nd node in this set is exactly the same, but can control 1-3 node ID's simultaneously.
