@@ -1,4 +1,4 @@
-# comfyui-mute-bypass-by-ID
+# comfyui-mute-bypass-by-I
 2 custom nodes for Comfyui for Muting or Bypassing a node, by node ID. They are widget linkable/promotable as a subgraph switch **or can be used as a stand alone node**. They can also mute/bypass in nested subgraphs by ID.
 
 Custom Node available widgets
@@ -33,5 +33,6 @@ The example below uses a triple node in bypass mode as a stand alone node on the
 
 <img width="715" height="670" alt="triple bypass satand alone" src="https://github.com/user-attachments/assets/475fb522-5ebd-4da9-90a8-72135de7cadc" />
 
-<img width="27" height="39" alt="image" src="https://github.com/user-attachments/assets/8b5fde6c-059c-4581-a385-b619b28b5447" />
+I built these nodes for personal use, but if you like what I have done and want to say thank you, feel free to buy me a coffee
+<img width="27" height="39" alt="image" src="https://github.com/user-attachments/assets/8b5fde6c-059c-4581-a385-b619b28b5447" /> https://buymeacoffee.com/pixelpainter
 
