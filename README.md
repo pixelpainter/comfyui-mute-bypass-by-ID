@@ -32,17 +32,10 @@ The 2nd node in this set is exactly the same, but can control 1-3 node ID's simu
 The example below uses a triple node in bypass mode as a stand alone node on the main canvas. (the single switch can also be used as a stand alone node)
 
 <img width="715" height="670" alt="triple bypass satand alone" src="https://github.com/user-attachments/assets/475fb522-5ebd-4da9-90a8-72135de7cadc" />
-.
-.
-.
-.
-.
-.
-.
-.
-.
-.
+#
+#
 I built these nodes for personal use, but if you like what I have done and want to say thank you, feel free to buy me a coffee
-
+#
+#
 <img width="27" height="39" alt="image" src="https://github.com/user-attachments/assets/8b5fde6c-059c-4581-a385-b619b28b5447" /> https://buymeacoffee.com/pixelpainter
 
