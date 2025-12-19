@@ -3,9 +3,12 @@
 
 image 1 - promoted widgets / image 2 - linked widgets. either method will work the same way.
 
-Widget 1 - Choose either mute or bypass mode with first switch
+Widget 1 - Choose either mute or bypass mode with first switch.
+
 Widget 2 - Control active or mute/bypass with 2nd switch (turn mute/bypass on or off)
-Widget 3 - Add Node ID to 3rd switch to control your desired node. This node can also be buried under several nested subgraphs and should still work. 
+
+Widget 3 - Add Node ID to 3rd switch to control your desired node. This node can also be buried under several nested subgraphs and should still work
+ 
 (The only issue is if Comfyui changes the node ID or duplicates a node ID, but this is rare. To fix this issue, duplicate your node to give it a new ID and use the duplicated node instead.)
 
 In the example below, to optimize the Subgrah, only the switch itself has been promoted/linked to the Subgraph node to minimize the Subgraph real estate. The settings can be adjusted on the Subgraph canvas. If you choose, all of the node widgets can be linked or promoted.
