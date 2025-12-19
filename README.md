@@ -24,4 +24,9 @@ Same setup as linked widgets
 The front facing Subgraph node with widgets, only the mute/bypass switch widget has been linked/promoted to the Subgraph
 <img width="670" height="500" alt="Subgraph Node with widget switches" src="https://github.com/user-attachments/assets/631d777d-f183-4cca-aef7-267f17823840" />
 
-The 2nd node in this set is exactly the same, but can control 1-3 node ID's simultaneously.
+The 2nd node in this set is exactly the same, but can control 1-3 node ID's simultaneously. 
+
+The example below uses a triple node in bypass mode as a stand alone node on the main canvas. (the single switch can also be used as a stand alone node)
+
+
+<img width="715" height="670" alt="triple bypass satand alone" src="https://github.com/user-attachments/assets/475fb522-5ebd-4da9-90a8-72135de7cadc" />
