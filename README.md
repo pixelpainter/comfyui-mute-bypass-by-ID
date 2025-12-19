@@ -12,6 +12,7 @@ Widget 3 - Add Node ID to 3rd switch to control your desired node. This node can
 (The only issue is if Comfyui changes the node ID or duplicates a node ID, but this is rare. To fix this issue, duplicate your node to give it a new ID and use the duplicated node instead.)
 
 image 1 - promoted widgets / image 2 - linked widgets. Either method will work the same way.
+
 In the example below, to optimize the Subgrah, only the switch itself has been promoted/linked to the Subgraph node to minimize the Subgraph real estate. The settings can be adjusted on the Subgraph canvas. If you choose, all of the node widgets can be linked or promoted.
 
 Example of a Subgraph Canvas with 2 single mute/bypass nodes which can switch between a single or dual clip setup. The widgets have been promoted.
