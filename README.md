@@ -9,7 +9,7 @@ Widget 2 - Control active or mute/bypass with 2nd switch (turn mute/bypass on or
 
 Widget 3 - Add Node ID to 3rd widget to control your desired node. The node ID can be buried under several nested subgraphs and should still work
  
-(The only issue is if Comfyui changes the node ID or duplicates a node ID, but this is rare. To fix this issue, duplicate the node you wish to mute or bypass to give it a new ID and use the duplicated node instead.)
+(The only issue I have run into is when Comfyui changes the node ID or duplicates a node ID, but this is uncommon. To fix this issue, duplicate the node you wish to mute or bypass, the duplicate will be asssigned a new ID, swap out the original node with the duplicated node which has a new ID.)
 
 In the example below, to optimize the Subgraph, only the mute/bypass switch has been promoted/linked to the Subgraph node to minimize the Subgraph real estate usage. The settings can be adjusted on the Subgraph canvas. If you choose, all of the node widgets can be linked or promoted.
 
