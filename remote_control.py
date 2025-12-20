@@ -13,8 +13,8 @@ class RemoteControl:
                 "mode_select": ("BOOLEAN", {"default": False, "label_on": "mute", "label_off": "bypass"}),
                 
                 # Switch 2: Master Active/Inactive
-                # ON = Target Node is ACTIVE (Normal/Green)
-                # OFF = Target Node is INACTIVE (Mute or Bypass)
+                # ON = Target Node is Active (Normal)
+                # OFF = Target Node is Inactive (Mute or Bypass)
                 "node_status": ("BOOLEAN", {"default": True, "label_on": "active", "label_off": "mute/bypass"}),
                 
                 "node_id": ("INT", {"default": 0, "min": 0, "max": 999999, "step": 1, "display": "number"}),
