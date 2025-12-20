@@ -21,7 +21,7 @@ The same setup as above with linked widgets
 
 <img width="1580" height="725" alt="subgraph linked widgets" src="https://github.com/user-attachments/assets/5fbab389-4750-4d64-8ed4-3cf83afec5c8" />
 
-The front facing Subgraph node with widgets, only the mute/bypass switch widget has been linked/promoted to the Subgraph
+The front facing Subgraph node with widgets, only the mute/bypass switch widget has been linked/promoted to the Subgraph. Using the linked or promoted widget switch will mute or bypass the node on the Subgraph canvas by the ID added on the mute/bypass node.
 
 https://github.com/user-attachments/assets/d3ef2dd3-e04e-4317-8ca2-8fa10d04e125
 
