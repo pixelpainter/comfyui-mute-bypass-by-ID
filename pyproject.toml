@@ -1,5 +1,5 @@
 [project]
-name = "mute-bypass-by-ID"
+name = "comfyui-mute-bypass-by-ID"
 description = "2 custom nodes for Comfyui for muting or bypassing a node by node ID. They are widget linkable/promotable as a subgraph node switch, or can be used as a stand alone node. They can also mute/bypass in nested subgraphs by ID."
 version = "1.0.0"
 license = {file = "LICENSE"} 
@@ -34,6 +34,7 @@ DisplayName = "mute-bypass node by ID"
 Icon = ""
 includes = ['js'] 
 # "requires-comfyui" = ">=1.0.0"  # ComfyUI version compatibility
+
 
 
 
