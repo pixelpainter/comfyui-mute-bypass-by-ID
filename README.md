@@ -23,7 +23,8 @@ The same setup as above with linked widgets
 
 The front facing Subgraph node with widgets, only the mute/bypass switch widget has been linked/promoted to the Subgraph
 
-<img width="670" height="500" alt="Subgraph Node with widget switches" src="https://github.com/user-attachments/assets/631d777d-f183-4cca-aef7-267f17823840" />
+https://github.com/user-attachments/assets/d3ef2dd3-e04e-4317-8ca2-8fa10d04e125
+
 
 The 2nd node in this set is exactly the same, but can control 1-3 node ID's simultaneously. 
 
