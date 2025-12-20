@@ -11,7 +11,7 @@ Widget 3 - Add Node ID to 3rd widget to control your desired node. The node ID c
  
 (The only issue is if Comfyui changes the node ID or duplicates a node ID, but this is rare. To fix this issue, duplicate the node you wish to mute or bypass to give it a new ID and use the duplicated node instead.)
 
-In the example below, to optimize the Subgraph, only the mute/bypass switch has been promoted/linked to the Subgraph node to minimize the Subgraph real estate. The settings can be adjusted on the Subgraph canvas. If you choose, all of the node widgets can be linked or promoted.
+In the example below, to optimize the Subgraph, only the mute/bypass switch has been promoted/linked to the Subgraph node to minimize the Subgraph real estate usage. The settings can be adjusted on the Subgraph canvas. If you choose, all of the node widgets can be linked or promoted.
 
 Example of a Subgraph Canvas with 2 single mute/bypass nodes which can be used to switch between a single or dual clip setup by muting one of the clips nodes. The widgets have been promoted.
 
