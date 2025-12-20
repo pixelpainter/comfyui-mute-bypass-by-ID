@@ -1,7 +1,7 @@
 [project]
 name = "mute-bypass-by-ID"
 description = "2 custom nodes for Comfyui for muting or bypassing a node by node ID. They are widget linkable/promotable as a subgraph node switch, or can be used as a stand alone node. They can also mute/bypass in nested subgraphs by ID."
-version = "1.1.1"
+version = "1.0.0"
 license = {file = "LICENSE"} 
 # classifiers = [
 #     # For OS-independent nodes (works on all operating systems)
@@ -22,18 +22,19 @@ license = {file = "LICENSE"}
 
 
 [project.urls]
-Repository = "https://github.com/pixelpainter/mute-bypass-by-ID"
+Repository = "https://github.com/pixelpainter/comfyui-mute-bypass-by-ID"
 #  Used by Comfy Registry https://registry.comfy.org
-Documentation = "https://github.com/pixelpainter/mute-bypass-by-ID"
-"Bug Tracker" = "https://github.com/pixelpainter/mute-bypass-by-ID/issues"
+Documentation = "https://github.com/pixelpainter/comfyui-mute-bypass-by-ID"
+"Bug Tracker" = "https://github.com/pixelpainter/comfyui-mute-bypass-by-ID"
 license = { file = "LICENSE" }
 
 [tool.comfy]
 PublisherId = "pixelpainter"
-DisplayName = "mute/bypass by ID"
-Icon = ""
+DisplayName = "mute-bypass node by ID"
+Icon = "<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#90feab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-orbit-icon lucide-orbit"><path d="M20.341 6.484A10 10 0 0 1 10.266 21.85"/><path d="M3.659 17.516A10 10 0 0 1 13.74 2.152"/><circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/></svg>"
 includes = ['js'] 
 # "requires-comfyui" = ">=1.0.0"  # ComfyUI version compatibility
+
 
 
 
