@@ -1,13 +1,13 @@
 # comfyui-mute-bypass-by-ID
 2 custom nodes for Comfyui for muting or bypassing a node by node ID. They are widget linkable or promotable as a subgraph node widget switch **or can be used as a stand alone node**. They can also mute/bypass in nested subgraphs by ID.
 
-Like this node? Feel free buymeacoffee.com/pixelpainter ...or not!
+Like this node? Feel free to buy me a coffee <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a> ...or not
 
-[comfyui-mute-bypass-by-ID] Node  widgets
+[comfyui-mute-bypass-by-ID] Node widgets
 
 Widget 1 - Choose either mute or bypass mode with first switch.
 
-Widget 2 - Control active or mute/bypass with 2nd switch (turn mute/bypass on or off)
+Widget 2 - Control either active or mute/bypass with the 2nd switch (turn mute/bypass on or off)
 
 Widget 3 - Add Node ID to 3rd widget to control your desired node. The node ID can be buried under several nested subgraphs and should still work
  
