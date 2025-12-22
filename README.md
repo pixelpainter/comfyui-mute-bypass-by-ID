@@ -3,7 +3,7 @@
 
 Like this node? Feel free to buy me a coffee <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a> ...or not
 
-[comfyui-mute-bypass-by-ID] Node widgets
+comfyui-mute-bypass-by-ID Node widget details
 
 Widget 1 - Choose either mute or bypass mode with first switch.
 
