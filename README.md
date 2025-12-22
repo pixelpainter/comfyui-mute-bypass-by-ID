@@ -32,6 +32,6 @@ The example below uses a triple node in bypass mode as a stand alone node on the
 
 <img width="715" height="670" alt="triple bypass satand alone" src="https://github.com/user-attachments/assets/475fb522-5ebd-4da9-90a8-72135de7cadc" />
 
-Workaround:(The only issue I have run into is when Comfyui changes the node ID or duplicates a node ID. To fix a node ID which has been changed, just update the mute-bypass node with the new ID. To fix a **duplicate ID** issue, **duplicate the node** you wish to mute or bypass, the newly duplicated node will be assigned a different ID, swap out the original node with the duplicate node and update the mute-bypass node with the new ID.)
+Workaround: I am working on an update to fix this (The only issue I have run into is when Comfyui changes the node ID or duplicates a node ID. To fix a node ID which has been changed, just update the mute-bypass node with the new ID. To fix a **duplicate ID** issue, **duplicate the node** you wish to mute or bypass, the newly duplicated node will be assigned a different ID, swap out the original node with the duplicate node and update the mute-bypass node with the new ID.)
 
 
