@@ -1,3 +1,4 @@
+# comfyui-mute-bypass-by-ID
 12/29/2025
 Major Version Update V2.0.0
 This will now reliably mute or bypass any node in any Subgraph using Subgraph and Node ID together. Comfyui can sometimes assign a duplicate ID for nodes in diffrent subgraphs, this latest update fixes this issue.
@@ -5,6 +6,9 @@ This will now reliably mute or bypass any node in any Subgraph using Subgraph an
 There are 4 nodes total:
 
 Node 1: Remote Mute Bypass single
+
+Use the Mode Select Button to change from Mute to Bypass
+Use the Node Status button to switch between Active and Mute/Bypass state
 
 <img width="315" height="226" alt="image" src="https://github.com/user-attachments/assets/98360aee-2595-445b-90b2-63d696bda232" />
 
@@ -18,8 +22,7 @@ If you search by ID and you see 2 nodes with the same ID check the path for the 
 
 
 
-# comfyui-mute-bypass-by-ID
-2 custom nodes for Comfyui for muting or bypassing a node by node ID. They are widget linkable or promotable as a subgraph node widget switch **or can be used as a stand alone node**.
+
 
 Like this node? Feel free to buy me a coffee <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a> ...or not
 
