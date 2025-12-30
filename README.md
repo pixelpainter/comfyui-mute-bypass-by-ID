@@ -1,11 +1,11 @@
 # comfyui-mute-bypass-by-ID
 This pack includes 4 custom nodes:
 
-Mute/Bypass (2 nodes): Can be used standalone or promoted to subgraph widgets. They support targeting nested nodes by ID, even handling duplicate IDs correctly.
+Mute/Bypass (2 nodes): Can be used standalone or promoted to subgraph widgets. They support targeting nested nodes by ID, even handling duplicate IDs in different Subgraphs correctly.
 
-A/B Switch (2 nodes): Toggles between two target IDs (activating A mutes B, and activating B mutes A). Includes a standard and a multi-switch variant.
+A/B Switch (2 nodes): Toggles between two target IDs (activating A mutes/bypasses B, and activating B mutes/bypasses A). Includes a standard and a multi-switch variant.
 
-These nodes were made with love for personal use, but if you like this node set? Feel free to buy me a coffee to keep me up late <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a>
+These nodes were made with love for personal use, but if you like this node set, feel free to buy me a coffee to help me stay me up late lol 😂 <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a>
 
 **12/29/2025**
 **Major Version Update V2.0.0**   
@@ -20,7 +20,7 @@ Use the Active to Mute/Bypass switch to turn mute/bypass on and off
 
 <img width="315" height="226" alt="image" src="https://github.com/user-attachments/assets/98360aee-2595-445b-90b2-63d696bda232" />
 
-Click the dropdown and search by node ID or name, or select a subgraph and node to mute in the menu.
+Top add a node ID click the dropdown and search by node ID or name, or select a subgraph and node to mute in the menu.
 
 If you search by ID and you see 2 nodes with the same ID check the path for the Subgraph node you are looking for.
 
@@ -34,7 +34,7 @@ This switch works the same as Node 1 but it will mute/bypass any combination of 
 <img width="1512" height="423" alt="image" src="https://github.com/user-attachments/assets/0c0c694d-46f1-4ab4-8324-fafd627ce5a0" />
 
 **Node 3: Remote A/B mute/bypass switch**  
-This node will take 2 Node ID's and will always mute/bypass 1 of the 2 ID's, you can switch mute/bypass between Node A or Node B
+TThe remaining two nodes toggle between two target IDs (activating A mutes B, and activating B mutes A). Includes a standard and a multi-switch variant.
 
 https://github.com/user-attachments/assets/bb9f56bf-f0e2-4828-8c6f-d82e291ac565
 
