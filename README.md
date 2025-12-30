@@ -1,36 +1,24 @@
+12/29/2025
+Major Version Update V2.0.0
+This will now reliably mute or bypass any node in any Subgraph using Subgraph and Node ID together. Comfyui can sometimes assign a duplicate ID for nodes in diffrent subgraphs, this latest update fixes this issue.
+
+There are 4 nodes total:
+Node 1: Remote Mute Bypass single
+Use the dropdown to either search for a node by ID, or use the menu to click on the Subgraph it is located, and select the node.
+If you search by ID and you see 2 nodes with the same ID check the path for the Subgraph node you are looking for.
+
+<img width="792" height="282" alt="image" src="https://github.com/user-attachments/assets/b7bd8877-c02a-4ddc-a546-9e287d331cbc" />
+
+<img width="315" height="226" alt="image" src="https://github.com/user-attachments/assets/98360aee-2595-445b-90b2-63d696bda232" />
+
+
+
 # comfyui-mute-bypass-by-ID
 2 custom nodes for Comfyui for muting or bypassing a node by node ID. They are widget linkable or promotable as a subgraph node widget switch **or can be used as a stand alone node**.
 
 Like this node? Feel free to buy me a coffee <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a> ...or not
 
-comfyui-mute-bypass-by-ID Node widget details
 
-Widget 1 - Choose either mute or bypass mode with first switch.
-
-Widget 2 - Control either active or mute/bypass with the 2nd switch (turn mute/bypass on or off)
-
-Widget 3 - Add Node ID to 3rd widget to control your desired node. The node ID can be buried under several nested subgraphs and should still work
- 
-In the example below, to optimize the Subgraph, only the mute/bypass switch has been promoted/linked to the Subgraph node to minimize the Subgraph real estate usage. The settings can be adjusted on the Subgraph canvas. If you choose, all of the node widgets can be linked or promoted.
-
-Example of a Subgraph Canvas with 2 single mute/bypass nodes which can be used to switch between a single or dual clip setup by muting one of the clips nodes. The widgets have been promoted.
-
-https://github.com/user-attachments/assets/5d42161f-b760-472c-a6f9-3723366e67b3
-
-The same setup as above with linked widgets
-
-<img width="1580" height="725" alt="subgraph linked widgets" src="https://github.com/user-attachments/assets/5fbab389-4750-4d64-8ed4-3cf83afec5c8" />
-
-The front facing Subgraph node with widgets, only the mute/bypass switch widget has been linked/promoted to the Subgraph. Using the linked or promoted widget switch will mute or bypass a node by the ID added to the mute/bypass node on the Subgraph canvas.
-
-https://github.com/user-attachments/assets/d3ef2dd3-e04e-4317-8ca2-8fa10d04e125
-
-
-The 2nd node in this set is exactly the same, but can control 1-3 node ID's simultaneously. 
-
-The example below uses a triple node in bypass mode as a stand alone node on the main canvas. (the single switch can also be used as a stand alone node)
-
-<img width="715" height="670" alt="triple bypass satand alone" src="https://github.com/user-attachments/assets/475fb522-5ebd-4da9-90a8-72135de7cadc" />
 
 Workaround: I am working on an update to fix this (The only issue I have run into is when Comfyui changes the node ID or duplicates a node ID. To fix a node ID which has been changed, just update the mute-bypass node with the new ID. To fix a **duplicate ID** issue, **duplicate the node** you wish to mute or bypass, the newly duplicated node will be assigned a different ID, swap out the original node with the duplicate node and update the mute-bypass node with the new ID.)
 
