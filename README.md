@@ -1,4 +1,9 @@
 # comfyui-mute-bypass-by-ID
+This pack includes 4 custom nodes:
+
+Mute/Bypass (2 nodes): Can be used standalone or promoted to subgraph widgets. They support targeting nested nodes by ID, even handling duplicate IDs correctly.
+
+A/B Switch (2 nodes): Toggles between two target IDs (activating A mutes B, and activating B mutes A). Includes a standard and a multi-switch variant.
 
 These nodes were made with love for personal use, but if you like this node set? Feel free to buy me a coffee to keep me up late <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a>
 
