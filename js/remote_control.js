@@ -316,9 +316,6 @@ app.registerExtension({
                     }
                     
                     if (this.callback) this.callback(this.value);
-                    if (node && node.comfyClass === "RemoteSwitchMulti" && typeof enforceState === "function") {
-                        enforceState();
-                    }
                     node.setDirtyCanvas(true);
                     
                     // STOP PROPAGATION -> Kills dropdown menu for Switch nodes
@@ -390,9 +387,7 @@ app.registerExtension({
                             // Pill starts at y+15 (if header exists). 
                             // So draw text at y+12 (bottom baseline) or y+10 (middle).
                             // Let's use standard fillText.
-                            let _labelY = y + 6;
-                            if (this._headerLabel === "Switch B") _labelY -= 2;
-                            ctx.fillText(this._headerLabel, margin, _labelY);
+                            ctx.fillText(this._headerLabel, margin, y + 6);
                             
                             ctx.restore();
                             yOffset = 15; // Push pill down
@@ -442,7 +437,7 @@ app.registerExtension({
                         
                         let subText = "Select a target...";
                         if (entry.title !== "None" && !entry.isError) {
-                            subText = (entry.fullPathLabel || "Unknown path").replace(/^Root\s*>\s*/, "");
+                            subText = entry.fullPathLabel || "Unknown path";
                         }
                         ctx.fillText(fitText(ctx, subText, wWidth), margin, pillY + pillHeight + 3);
                     } catch (e) {
@@ -524,6 +519,59 @@ app.registerExtension({
                 if (graphChanged && app.canvas) app.canvas.setDirty(true, true);
             } catch (e) { }
         }
+
+        // -----------------------------------------------------
+        // Option A: Event-driven enforcement for promoted/linked widgets
+        // Promoted widgets can change inner widget values without triggering mouse handlers.
+        // We watch value changes on the *inner* widgets and run enforceState immediately.
+        // -----------------------------------------------------
+        function _rcWatchWidgetValue(w) {
+            if (!w || w._rcWatchedValue) return;
+
+            const desc = Object.getOwnPropertyDescriptor(w, "value");
+            if (desc && desc.configurable === false) return;
+
+            let _v = (desc && desc.get) ? desc.get.call(w) : w.value;
+            const origGet = (desc && desc.get) ? desc.get : null;
+            const origSet = (desc && desc.set) ? desc.set : null;
+
+            Object.defineProperty(w, "value", {
+                configurable: true,
+                enumerable: true,
+                get() {
+                    return origGet ? origGet.call(this) : _v;
+                },
+                set(v) {
+                    const prev = origGet ? origGet.call(this) : _v;
+
+                    if (origSet) {
+                        origSet.call(this, v);
+                        _v = origGet ? origGet.call(this) : v;
+                    } else {
+                        _v = v;
+                    }
+
+                    const next = origGet ? origGet.call(this) : _v;
+                    if (next !== prev) {
+                        try { enforceState(); } catch (e) {}
+                        try { node.setDirtyCanvas(true, true); } catch (e) {}
+                    }
+                }
+            });
+
+            w._rcWatchedValue = true;
+        }
+
+        function _rcEnableEventDrivenEnforcement() {
+            if (!node.widgets) return;
+
+            const watchNames = new Set(["mode_select", "node_status", "switch_status"]);
+            for (const w of node.widgets) {
+                if (!w || !w.name) continue;
+                if (watchNames.has(w.name)) _rcWatchWidgetValue(w);
+            }
+        }
+
 
         // -----------------------------------------------------
         // 5. INITIALIZATION
@@ -683,6 +731,7 @@ app.registerExtension({
             processWidgets();
             overrideModeSelect(node);
             overrideStatusSwitch(node);
+            _rcEnableEventDrivenEnforcement();
             node.setSize(node.computeSize()); 
         };
         
@@ -691,6 +740,7 @@ app.registerExtension({
             processWidgets(); 
             overrideModeSelect(node);
             overrideStatusSwitch(node);
+            _rcEnableEventDrivenEnforcement();
             enforceState();
             node.setSize(node.computeSize()); 
         }, 100);

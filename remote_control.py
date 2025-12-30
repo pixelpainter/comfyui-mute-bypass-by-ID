@@ -63,6 +63,7 @@ class RemoteSwitch:
     def INPUT_TYPES(s):
         return {
             "required": {
+                # CHANGED: Now a real BOOLEAN to match other nodes
                 "mode_select": ("BOOLEAN", {"default": False, "label_on": "mute", "label_off": "bypass"}),
                 "switch_status": ("BOOLEAN", {"default": True, "label_on": "Side A Active", "label_off": "Side B Active"}),
                 "target_node_A": ("STRING", {"multiline": False, "default": ""}),
@@ -90,6 +91,7 @@ class RemoteSwitchMulti:
     def INPUT_TYPES(s):
         return {
             "required": {
+                # CHANGED: Now a real BOOLEAN to match other nodes
                 "mode_select": ("BOOLEAN", {"default": False, "label_on": "mute", "label_off": "bypass"}),
                 "switch_status": ("BOOLEAN", {"default": True, "label_on": "Side A Active", "label_off": "Side B Active"}),
                 "target_node_A1": ("STRING", {"multiline": False, "default": ""}),
