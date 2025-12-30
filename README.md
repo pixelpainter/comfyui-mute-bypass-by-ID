@@ -7,7 +7,7 @@ A/B Switch (2 nodes): Toggles between two target IDs (activating A mutes B, and 
 
 These nodes were made with love for personal use, but if you like this node set? Feel free to buy me a coffee to keep me up late <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a>
 
-**12/29/2025**  in process
+**12/29/2025**
 **Major Version Update V2.0.0**   
 This will now reliably mute or bypass any node in any Subgraph using the Subgraph ID and Node ID together. Comfyui can sometimes assign a duplicate ID for nodes in different subgraphs, this latest update fixes this issue.
 
