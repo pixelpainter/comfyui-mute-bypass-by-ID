@@ -6,13 +6,15 @@ There are 4 nodes total:
 
 Node 1: Remote Mute Bypass single
 
+<img width="315" height="226" alt="image" src="https://github.com/user-attachments/assets/98360aee-2595-445b-90b2-63d696bda232" />
+
 Use the dropdown to either search for a node by ID, or use the menu to click on the Subgraph it is located, and select the node.
 
 If you search by ID and you see 2 nodes with the same ID check the path for the Subgraph node you are looking for.
 
 <img width="792" height="282" alt="image" src="https://github.com/user-attachments/assets/b7bd8877-c02a-4ddc-a546-9e287d331cbc" />
 
-<img width="315" height="226" alt="image" src="https://github.com/user-attachments/assets/98360aee-2595-445b-90b2-63d696bda232" />
+
 
 
 
