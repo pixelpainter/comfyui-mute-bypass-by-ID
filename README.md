@@ -3,8 +3,11 @@ Major Version Update V2.0.0
 This will now reliably mute or bypass any node in any Subgraph using Subgraph and Node ID together. Comfyui can sometimes assign a duplicate ID for nodes in diffrent subgraphs, this latest update fixes this issue.
 
 There are 4 nodes total:
+
 Node 1: Remote Mute Bypass single
+
 Use the dropdown to either search for a node by ID, or use the menu to click on the Subgraph it is located, and select the node.
+
 If you search by ID and you see 2 nodes with the same ID check the path for the Subgraph node you are looking for.
 
 <img width="792" height="282" alt="image" src="https://github.com/user-attachments/assets/b7bd8877-c02a-4ddc-a546-9e287d331cbc" />
