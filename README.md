@@ -5,8 +5,6 @@ Mute/Bypass (2 nodes): Can be used standalone or promoted to subgraph widgets. T
 
 A/B Switch (2 nodes): Toggles between two target IDs (activating A mutes/bypasses B, and activating B mutes/bypasses A). Includes a standard and a multi-switch variant.
 
-These nodes were made with love for personal use, but if you like this node set, feel free to buy me a coffee to help me stay me up late lol 😂 <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a>
-
 **12/29/2025**
 **Major Version Update V2.0.0**   
 This will now reliably mute or bypass any node in any Subgraph using the Subgraph ID and Node ID together. Comfyui can sometimes assign a duplicate ID for nodes in different subgraphs, this latest update fixes this issue.
@@ -42,6 +40,8 @@ Node 4: Double Remote A/B mute/bypass switch
 This is the same as Node 3, but it will take 2 A/B input ID's and will switch mute/bypass state between 2 pairs of nodes
 
 https://github.com/user-attachments/assets/dd206b9d-5a56-4291-beda-97a83b5e031e
+
+These nodes were made with love for personal use, but if you like this node set, feel free to buy me a coffee to help me stay me up late lol 😂 <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a>
 
 
 
