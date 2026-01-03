@@ -1,5 +1,6 @@
 # comfyui-mute-bypass-by-ID
 This pack includes 4 custom nodes:
+If you like and use these nodes, please give me a star!
 
 Mute/Bypass (2 nodes): Can be used standalone or promoted to subgraph widgets. They support targeting nested nodes by ID, even handling duplicate IDs in different Subgraphs correctly.
 
