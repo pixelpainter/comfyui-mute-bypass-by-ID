@@ -2,7 +2,7 @@
 This pack includes 4 custom nodes:
 If you like and use these nodes, please give me a star!
 
-Mute/Bypass (2 nodes): Can be used standalone or promoted to subgraph widgets. They support targeting nested nodes by ID, even handling duplicate IDs in different Subgraphs correctly.
+Mute/Bypass (2 nodes): Can be used standalone or promoted/linked to subgraph widgets. They support targeting nested nodes by ID, even handling duplicate IDs in different Subgraphs correctly.
 
 A/B Switch (2 nodes): Toggles between two target IDs (activating A mutes/bypasses B, and activating B mutes/bypasses A). Includes a standard and a multi-switch variant.
 
