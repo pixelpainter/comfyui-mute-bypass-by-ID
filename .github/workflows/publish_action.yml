@@ -10,7 +10,7 @@ on:
 jobs:
   publish-node:
     name: Publish Custom Node to registry
-    runs-on: linux latest
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4

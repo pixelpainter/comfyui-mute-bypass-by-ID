@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-mute-bypass-by-ID"
-description = "2 custom nodes for Comfyui for muting or bypassing a node by node ID. They are widget linkable/promotable to a subgraph node as a switch, or can be used as a stand alone node. They can also mute/bypass in nested subgraphs by ID."
+description = "5 custom nodes for ComfyUI to mute or bypass any node by its node ID, even inside nested Subgraphs. Single (up to 20 targets), A/B switch (up to 10 pairs), a Stacker master control panel with global override, plus legacy Triple and AA/BB. All controls are widget linkable/promotable to Subgraph nodes."
 version = "3.0.0"
 license = {file = "LICENSE"} 
 # classifiers = [
@@ -26,7 +26,6 @@ Repository = "https://github.com/pixelpainter/comfyui-mute-bypass-by-ID"
 #  Used by Comfy Registry https://registry.comfy.org
 Documentation = "https://github.com/pixelpainter/comfyui-mute-bypass-by-ID"
 "Bug Tracker" = "https://github.com/pixelpainter/comfyui-mute-bypass-by-ID"
-license = { file = "LICENSE" }
 
 [tool.comfy]
 PublisherId = "pixelpainter"
