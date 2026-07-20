@@ -1,5 +1,10 @@
 # comfyui-mute-bypass-by-ID
 
+[![ComfyUI Registry](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.comfy.org%2Fnodes%2Fcomfyui-mute-bypass-by-id&query=%24.latest_version.version&label=ComfyUI%20Registry&prefix=v&color=1a56db)](https://registry.comfy.org/nodes/comfyui-mute-bypass-by-id)
+[![Downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.comfy.org%2Fnodes%2Fcomfyui-mute-bypass-by-id&query=%24.downloads&label=downloads&color=2fbc06)](https://registry.comfy.org/nodes/comfyui-mute-bypass-by-id)
+[![GitHub stars](https://img.shields.io/github/stars/pixelpainter/comfyui-mute-bypass-by-ID?style=social)](https://github.com/pixelpainter/comfyui-mute-bypass-by-ID/stargazers)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-%E2%98%95-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/pixelpainter)
+
 Remotely **mute or bypass any node in your workflow by its node ID** — even nodes buried inside nested Subgraphs — from a single compact control node. All controls are standard ComfyUI widgets, so they can be **linked or promoted to Subgraph nodes** and used as top-level switches.
 
 This pack includes **5 custom nodes**:
@@ -10,7 +15,7 @@ This pack includes **5 custom nodes**:
 * **Mute Bypass by ID — Triple** *(legacy)*: mute/bypass any combination of 1–3 nodes. Kept for compatibility — use the growable Single node instead.
 * **Mute Bypass by ID — AA/BB** *(legacy)*: switches two A/B pairs at once. Kept for compatibility — use the growable A/B node instead.
 
-If you like these nodes, please think about giving me a star!
+⭐ If these nodes save you time, a star helps other ComfyUI users find them.
 
 ---
 
@@ -110,4 +115,8 @@ https://github.com/user-attachments/assets/dd206b9d-5a56-4291-beda-97a83b5e031e
 
 ---
 
-These nodes were made with love for personal use, but if you like this node set, feel free to buy me a coffee to help me stay up late lol 😂 <a href="https://buymeacoffee.com/pixelpainter">buymeacoffee/pixelpainter</a>
+These nodes were made with love for personal use, but if you like this node set, feel free to buy me a coffee to help me stay up late lol 😂
+
+<a href="https://buymeacoffee.com/pixelpainter"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="45" /></a>
+
+⭐ And if they've earned a place in your workflow, a star helps other ComfyUI users find them.
