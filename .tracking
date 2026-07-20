@@ -1,0 +1,8 @@
+.github/FUNDING.yml
+.github/workflows/publish_action.yml
+LICENSE
+README.md
+__init__.py
+js/remote_control.js
+pyproject.toml
+remote_control.py
