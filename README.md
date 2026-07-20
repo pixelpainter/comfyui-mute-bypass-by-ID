@@ -16,7 +16,7 @@ If you like these nodes, please think about giving me a star!
 
 ## Changelog
 
-**07/15/2026 — Version 2.5.1**
+**07/15/2026 — Version 3.0.0**
 
 * **A/B switch: new *node status* toggle** — the same control as on the Single node. In its default state (*Muted / Bypassed*) the A/B switch works exactly like before: the inactive side is muted/bypassed. Flip it to **Active** and *both* sides run at the same time. Existing A/B workflows load and behave identically.
 * **Simplified controls** — the experimental per-row state and per-node master controls were rolled back to standard ComfyUI toggles, which promote and link to Subgraph nodes reliably across frontend versions.
