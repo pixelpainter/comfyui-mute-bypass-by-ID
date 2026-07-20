@@ -23,7 +23,7 @@ This pack includes **5 custom nodes**:
 
 **07/15/2026 — Version 3.0.0**
 
-* **A/B switch: new *node status* toggle** — the same control as on the Single node. In its default state (*Muted / Bypassed*) the A/B switch works exactly like before: the inactive side is muted/bypassed. Flip it to **Active** disable mute bypass for *both* A and B nodes. Existing A/B workflows load and behave identically.
+* **A/B switch: new *node status* toggle** — the same control as on the Single node. In its default state (*Muted / Bypassed*) the A/B switch works exactly like before: the inactive side is muted/bypassed. Flipping it to **Active** disables mute/bypass for *both* A and B nodes. Existing A/B workflows load and behave identically.
 * **Simplified controls** — the experimental per-row state and per-node master controls were rolled back to standard ComfyUI toggles, which promote and link to Subgraph nodes reliably across frontend versions.
 * **Stacker: promotable global override** — the User/Mute/Bypass header buttons were replaced by two native toggles (*user/global* and *mute/bypass*). Promote them to a Subgraph node for a one-click master switch; promoted toggles stay in sync even when flipped through a link.
 * **Stacker: full A/B control from the row** — flip the **A/B side** and toggle *node status* directly on the Stacker row. Switching back to *user* restores each node's exact previous state, including which side was active.
