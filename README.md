@@ -5,7 +5,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/pixelpainter/comfyui-mute-bypass-by-ID?style=social)](https://github.com/pixelpainter/comfyui-mute-bypass-by-ID/stargazers)
 [![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-%E2%98%95-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/pixelpainter)
 
-**mute or bypass any node in your workflow by its node ID or Name** — even nodes buried inside nested Subgraphs — from a single compact control node. The node toggles and target pickers are standard ComfyUI widgets, so they can be **linked or promoted to Subgraph nodes** and used as top-level switches.
+**mute or bypass any node in your workflow by its node ID or Name** — even nodes buried inside nested Subgraphs — from a single compact control node. The node toggles, and target pickers are standard ComfyUI widgets, so they can be **linked or promoted to Subgraph nodes** and used as top-level switches.
 
 This pack includes **5 custom nodes**:
 
