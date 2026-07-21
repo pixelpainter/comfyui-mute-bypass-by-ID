@@ -12,8 +12,8 @@ This pack includes **5 custom nodes**:
 * **Single**: mute/bypass 1 target, growable up to **20 targets** with the **+ Node** button.
 * **A/B**: toggle between two targets (A active mutes/bypasses B and vice-versa), growable up to **10 A/B pairs** with the **+ Pair** button. Includes a *node status* control to disable mute and bypass on the A and B nodes.
 * **Stacker**: a master control panel that lists your Remote Control nodes in one place, with per-row controls and a **global Mute / Bypass / User override**.
-* **Triple** *(legacy)*: mute/bypass any combination of 1–3 nodes. Kept for compatibility — use the growable Single node instead.
-* **AA/BB** *(legacy)*: switches two A/B pairs at once. Kept for compatibility — use the growable A/B node instead.
+* **Triple**: *(legacy)*: mute/bypass any combination of 1–3 nodes. Kept for compatibility — use the growable Single node instead.
+* **AA/BB**: *(legacy)*: switches two A/B pairs at once. Kept for compatibility — use the growable A/B node instead.
 
 ⭐ If these nodes save you time, a star helps other ComfyUI users find them.
 
