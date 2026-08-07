@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-mute-bypass-by-ID"
 description = "5 custom nodes for ComfyUI to mute or bypass any node by its node ID, even inside nested Subgraphs. Single (up to 20 targets), A/B switch (up to 10 pairs), a Stacker master control panel with global override, plus legacy Triple and AA/BB. All controls are widget linkable/promotable to Subgraph nodes."
-version = "3.0.0"
+version = "3.0.1"
 license = {file = "LICENSE"} 
 # classifiers = [
 #     # For OS-independent nodes (works on all operating systems)
