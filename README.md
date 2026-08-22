@@ -128,7 +128,7 @@ Same as the A/B node, but switches 2 fixed pairs at once. Kept only for old work
 
 **08/21/2026 — Version 3.0.2**
 
-* **Fix: the + Node / + Pair buttons were greyed out.** A corrupted `remote_control.py` was included in the previous update, which left the Single and A/B nodes stuck on a single target/pair — the **+ Node** and **+ Pair** buttons appeared disabled and no extra rows could be added. Restored the correct file so **+ Node** grows to 20 targets and **+ Pair** grows to 10 pairs again. No workflow changes are needed.
+* **Fix: the + Node / + Pair buttons were greyed out.**  `remote_control.py` was corrupted in the previous update, which left the Single and A/B nodes stuck on a single target/pair — the **+ Node** and **+ Pair** buttons appeared disabled and no extra rows could be added. Restored the correct file so **+ Node** grows to 20 targets and **+ Pair** grows to 10 pairs again. No workflow changes are needed.
 
 **07/15/2026 — Version 3.0.0**
 
