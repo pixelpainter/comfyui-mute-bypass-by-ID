@@ -126,6 +126,10 @@ Same as the A/B node, but switches 2 fixed pairs at once. Kept only for old work
 
 ## Changelog
 
+**08/21/2026 — Version 3.0.2**
+
+* **Fix: the + Node / + Pair buttons were greyed out.** A corrupted `remote_control.py` was included in the previous update, which left the Single and A/B nodes stuck on a single target/pair — the **+ Node** and **+ Pair** buttons appeared disabled and no extra rows could be added. Restored the correct file so **+ Node** grows to 20 targets and **+ Pair** grows to 10 pairs again. No workflow changes are needed.
+
 **07/15/2026 — Version 3.0.0**
 
 * **A/B switch: new *node status* toggle** — the same control as on the Single node. In its default state (*Muted / Bypassed*) the A/B switch works exactly like before: the inactive side is muted/bypassed. Set it to **Active** to disable mute and bypass on the A and B nodes. Existing A/B workflows load and behave identically.
