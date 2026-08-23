@@ -7,12 +7,18 @@ class RemoteControl:
 
     @classmethod
     def INPUT_TYPES(s):
+        required = {
+            "mode_select": ("BOOLEAN", {"default": False, "label_on": "mute", "label_off": "bypass"}),
+            "node_status": ("BOOLEAN", {"default": True, "label_on": "active", "label_off": "mute/bypass"}),
+            "target_node": ("STRING", {"default": "", "multiline": False}),
+        }
+        # Additional target rows (bind up to 20). Appended AFTER the original
+        # widgets so existing saved workflows deserialize unchanged; extras default
+        # to "". The front end reveals these via "+ Node" and hides unused ones.
+        for i in range(2, 21):
+            required["target_node_%d" % i] = ("STRING", {"default": "", "multiline": False})
         return {
-            "required": {
-                "mode_select": ("BOOLEAN", {"default": False, "label_on": "mute", "label_off": "bypass"}),
-                "node_status": ("BOOLEAN", {"default": True, "label_on": "active", "label_off": "mute/bypass"}),
-                "target_node": ("STRING", {"default": "", "multiline": False}),
-            },
+            "required": required,
             "hidden": {
                 "unique_id": "UNIQUE_ID",
             },
@@ -22,7 +28,7 @@ class RemoteControl:
     FUNCTION = "do_nothing"
     CATEGORY = "mute bypass by ID"
 
-    def do_nothing(self, mode_select, node_status, target_node, unique_id=None):
+    def do_nothing(self, **kwargs):
         return ()
 
 
@@ -61,13 +67,24 @@ class RemoteSwitch:
 
     @classmethod
     def INPUT_TYPES(s):
+        required = {
+            "mode_select": ("BOOLEAN", {"default": False, "label_on": "mute", "label_off": "bypass"}),
+            "switch_status": ("BOOLEAN", {"default": True, "label_on": "Side A Active", "label_off": "Side B Active"}),
+            "target_node_A": ("STRING", {"multiline": False, "default": ""}),
+            "target_node_B": ("STRING", {"multiline": False, "default": ""}),
+        }
+        # New: suppression on/off. When on (default) the inactive side is muted/
+        # bypassed as before; when off, neither side is suppressed (both pass
+        # through). Appended after the originals and defaulting to True so existing
+        # A/B workflows behave exactly as before.
+        required["suppress_enable"] = ("BOOLEAN", {"default": True, "label_on": "suppress", "label_off": "pass through"})
+        # Additional A/B pairs (bind up to 10). Appended after the originals;
+        # revealed via "+ Pair", unused pairs hidden.
+        for i in range(2, 11):
+            required["target_node_A%d" % i] = ("STRING", {"multiline": False, "default": ""})
+            required["target_node_B%d" % i] = ("STRING", {"multiline": False, "default": ""})
         return {
-            "required": {
-                "mode_select": ("BOOLEAN", {"default": False, "label_on": "mute", "label_off": "bypass"}),
-                "switch_status": ("BOOLEAN", {"default": True, "label_on": "Side A Active", "label_off": "Side B Active"}),
-                "target_node_A": ("STRING", {"multiline": False, "default": ""}),
-                "target_node_B": ("STRING", {"multiline": False, "default": ""}),
-            },
+            "required": required,
             "hidden": {
                 "unique_id": "UNIQUE_ID",
             },
@@ -118,7 +135,15 @@ class RemoteStacker:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
+            "required": {
+                # Global override as two native toggles (mirrors the Single node's
+                # node_status + mode_select pattern). off = User (per-node control);
+                # on = override every owned node with global_mode (mute/bypass).
+                # Native BOOLEANs are known widget types, so subgraph promotion
+                # projects them reliably across frontend versions.
+                "global_enable": ("BOOLEAN", {"default": False, "label_on": "global", "label_off": "user"}),
+                "global_mode": ("BOOLEAN", {"default": False, "label_on": "mute", "label_off": "bypass"}),
+            },
             "hidden": {
                 "unique_id": "UNIQUE_ID",
             },
@@ -128,5 +153,5 @@ class RemoteStacker:
     FUNCTION = "do_nothing"
     CATEGORY = "mute bypass by ID"
 
-    def do_nothing(self, unique_id=None):
+    def do_nothing(self, **kwargs):
         return ()
