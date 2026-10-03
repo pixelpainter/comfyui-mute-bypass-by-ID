@@ -1,10 +1,12 @@
 # comfyui-mute-bypass-by-ID
-⭐ If these nodes save you time, please give them a star to show your appreciation, a star also helps other ComfyUI users find them.
+
 
 [![ComfyUI Registry](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.comfy.org%2Fnodes%2Fcomfyui-mute-bypass-by-id&query=%24.latest_version.version&label=ComfyUI%20Registry&prefix=v&color=1a56db)](https://registry.comfy.org/nodes/comfyui-mute-bypass-by-id)
 [![Downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.comfy.org%2Fnodes%2Fcomfyui-mute-bypass-by-id&query=%24.downloads&label=downloads&color=2fbc06)](https://registry.comfy.org/nodes/comfyui-mute-bypass-by-id)
 [![GitHub stars](https://img.shields.io/github/stars/pixelpainter/comfyui-mute-bypass-by-ID?style=social)](https://github.com/pixelpainter/comfyui-mute-bypass-by-ID/stargazers)
 [![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-%E2%98%95-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/pixelpainter)
+
+⭐ If these nodes save you time, please give them a star to show your appreciation, a star also helps other ComfyUI users find them.
 
 **Mute or bypass any node in your workflow by its node ID or Name** — even nodes buried inside nested Subgraphs — from a single compact control node. The node toggles, and target pickers, are standard ComfyUI widgets, so they can be **linked or promoted to Subgraph nodes** and used as top-level switches.
 
