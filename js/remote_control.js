@@ -648,7 +648,28 @@ newW.onClick = function(pos, n) {
 };
 
 // Draw a single toggle "pill" row at a given y. kind decides text/colour.
-function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label) {
+// Find a sibling control (e.g. mode_select) for a toggle's label. On a
+// SubgraphNode the sibling may not be promoted (node_status promoted alone), so
+// follow the toggle's promoted input inward to the Remote node that owns it.
+function _rcFindSibling(node, selfName, pred) {
+    for (let d = 0; node && d < 16; d++) {
+        const w = (node.widgets || []).find(pred);
+        if (w) return w;
+        const g = _rcGetInnerGraph(node);
+        const slot = (node.inputs || []).findIndex(i => i.name === selfName);
+        const sgIn = g && g.inputs && slot >= 0 ? g.inputs[slot] : null;
+        const linkId = sgIn && sgIn.linkIds ? sgIn.linkIds[0] : null;
+        const link = linkId != null && g.links ? (g.links.get ? g.links.get(linkId) : g.links[linkId]) : null;
+        if (!link) return null;
+        node = _rcGetNode(g, link.target_id);
+        const inp = node && node.inputs && node.inputs[link.target_slot];
+        if (inp) selfName = inp.name;
+    }
+    return null;
+}
+
+function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label, selfName) {
+    const find = (pred) => _rcFindSibling(node, selfName, pred);
     const isPrim = (node.type === "Primitive" || node.comfyClass === "PrimitiveNode");
     const margin = isPrim ? 5 : 14.5;
     const H = 22;
@@ -667,7 +688,7 @@ function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label) {
         const on = !!value;
         if (!on) { valStr = "User"; dot = "#66afef"; }
         else {
-            const mW = (node.widgets || []).find(w => (w.name || "") === "global_mode");
+            const mW = find(w => (w.name || "") === "global_mode");
             const isMute = mW ? !!mW.value : false;
             valStr = isMute ? "Global Mute" : "Global Bypass";
             dot = isMute ? "#8a8a8a" : "#a080c0";
@@ -679,7 +700,7 @@ function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label) {
         const active = (String(value) === "true" || String(value).toLowerCase() === "active");
         if (active) { valStr = "Active"; dot = "#66afef"; }
         else {
-            const modeW = (node.widgets || []).find(w => (w.name || "") === "mode_select");
+            const modeW = find(w => (w.name || "") === "mode_select");
             const isMute = modeW ? !!modeW.value : false;
             valStr = isMute ? "Muted" : "Bypassed";
             dot = isMute ? "#8a8a8a" : "#a080c0";   // mute grey / bypass purple
@@ -688,14 +709,14 @@ function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label) {
         const on = (value == null) ? true : !!value;        // suppression on
         if (!on) { valStr = "Active"; dot = "#66afef"; }
         else {
-            const modeW = (node.widgets || []).find(w => (w.name || "") === "mode_select");
+            const modeW = find(w => (w.name || "") === "mode_select");
             const isMute = modeW ? !!modeW.value : false;
             valStr = isMute ? "Muted" : "Bypassed";
             dot = isMute ? "#8a8a8a" : "#a080c0";
         }
     } else if (kind === "switch_status") {
-        const suppressW = (node.widgets || []).find(w => (w.name || "").toLowerCase().includes("suppress"));
-        const modeW = (node.widgets || []).find(w => (w.name || "") === "mode_select");
+        const suppressW = find(w => (w.name || "").toLowerCase().includes("suppress"));
+        const modeW = find(w => (w.name || "") === "mode_select");
         const suppressOn = suppressW ? ((suppressW.value == null) ? true : !!suppressW.value) : true;
         const isMute = modeW ? !!modeW.value : false;
         const supLabel = isMute ? "Muted" : "Bypassed";
@@ -721,7 +742,7 @@ const _rcFixToggleDraw = (w) => {
         const lBase = _internal.replace(/_\d+$/, "");
         let kind = lBase;
         if (lBase === "suppress_enable" || lBase === "suppress") kind = "suppress_as_status";
-        _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, this.value, label);
+        _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, this.value, label, this.name);
     };
     w._rcFixed = true;
 };
@@ -960,6 +981,57 @@ const _rcEnforceLogic = (node) => {
     }
     if(changed) app.canvas.setDirty(true, true);
 };
+
+// Promoted (subgraph) toggles keep their OWN value on the outer SubgraphNode; the
+// inner widget never changes (the outer value is only substituted at execution),
+// so _rcEnforceLogic never saw the flip. Resolve a promoted control's effective
+// value by following its input link out through the SubgraphNode instance(s).
+// graphs[d] is the graph `node` lives in; parents[d-1] is the instance owning it.
+// Returns undefined when the control isn't promoted (or is wired to a plain node).
+function _rcPromotedValue(node, name, graphs, parents) {
+    let inp = (node.inputs || []).find(i => i.name === name);
+    for (let d = graphs.length - 1; d > 0 && inp && inp.link != null; d--) {
+        const g = graphs[d];
+        const link = g.links && (g.links.get ? g.links.get(inp.link) : g.links[inp.link]);
+        if (!link || String(link.origin_id) !== String(g.inputNode ? g.inputNode.id : -10)) return undefined;
+        const inst = parents[d - 1];
+        inp = inst.inputs && inst.inputs[link.origin_slot];
+        if (!inp) return undefined;
+        if (inp.link == null) {
+            const w = (inst.widgets || []).find(x => x.name === inp.name);
+            return w ? w.value : undefined;
+        }
+    }
+    return undefined;
+}
+
+// Mirror promoted control values onto the inner widgets, then re-enforce any
+// Remote node, at any depth, whose control values changed since we last looked.
+// ponytail: a subgraph definition shared by several instances follows whichever
+// instance is walked last; targets inside it are shared too, so no better answer.
+function _rcReconcileAll() {
+    const walk = (graphs, parents) => {
+        const graph = graphs[graphs.length - 1];
+        if (!graph || graphs.length > 16) return;
+        for (const n of graph._nodes || graph.nodes || []) {
+            if (!n || (n.graph !== undefined && n.graph !== graph)) continue; // ghost filter
+            if (_rcIsRemoteNode(n) && n.widgets) {
+                const ctrls = n.widgets.filter(w => /mode_select|status|suppress/.test(w.name || ""));
+                if (graphs.length > 1) {
+                    for (const w of ctrls) {
+                        const v = _rcPromotedValue(n, w.name, graphs, parents);
+                        if (typeof v === "boolean" && v !== w.value) w.value = v;
+                    }
+                }
+                const sig = ctrls.map(w => w.value).join();
+                if (sig !== n._rcCtrlSig) { n._rcCtrlSig = sig; _rcEnforceLogic(n); }
+            }
+            const inner = _rcGetInnerGraph(n);
+            if (inner) walk([...graphs, inner], [...parents, n]);
+        }
+    };
+    walk([_rcRootGraph()], []);
+}
 
 // =========================================================
 // 5b. STACKER — Constants & Helpers
@@ -2091,7 +2163,18 @@ try {
 
 app.registerExtension({
     name: "Comfy.RemoteControl",
-    
+
+    setup() {
+        // Visual sync for toggles flipped via promotion (see _rcReconcileAll).
+        setInterval(() => { try { _rcReconcileAll(); } catch (e) {} }, 300);
+        // And guarantee correct modes at queue time, closing the interval's gap.
+        const orig = app.graphToPrompt;
+        app.graphToPrompt = async function () {
+            try { _rcReconcileAll(); } catch (e) {}
+            return orig.apply(this, arguments);
+        };
+    },
+
     // Runtime Hook
     async nodeCreated(node) {
         const origDraw = node.onDrawForeground;
