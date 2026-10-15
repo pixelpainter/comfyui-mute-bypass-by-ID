@@ -129,6 +129,15 @@ Same as the A/B node, but switches 2 fixed pairs at once. Kept only for old work
 
 ## Changelog
 
+**10/15/2026 — Version 3.0.3**
+
+* **Fix: promoted widgets now work on ComfyUI frontend 1.52+.** Toggles promoted to a subgraph node (`node_status`, `mode_select`, `switch_status`) and the Stacker's `global_enable` / `global_mode` now control their targets when flipped from the subgraph node, including in nested subgraphs.
+* **Promoted target pickers** now show and work on the subgraph node, and stay in sync with the rows on the node itself.
+* **Stacker overrides** on promoted nodes now hold and restore correctly instead of being undone.
+* **Fix:** a subgraph whose title starts with "Remote" was mistaken for a Remote node.
+
+Thanks to @Deaquay for tracking down the root cause in #8.
+
 **08/21/2026 — Version 3.0.2**
 
 * **Fix: the + Node / + Pair buttons were greyed out.**  `remote_control.py` was corrupted in the previous update for some people, which left the Single and A/B nodes stuck on a single target/pair — the **+ Node** and **+ Pair** buttons appeared disabled and no extra rows could be added. Restored the correct file so **+ Node** grows to 20 targets and **+ Pair** grows to 10 pairs again. No workflow changes are needed.

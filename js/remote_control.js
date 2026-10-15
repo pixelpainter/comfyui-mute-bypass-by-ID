@@ -190,6 +190,11 @@ function _rcLeadsToRemote(graph, node, outputIndex, visited = new Set()) {
 // match (tier 3), with a short grace window.
 function _rcRootGraph() {
     try {
+        // LGraph/Subgraph expose rootGraph in current frontends (root returns itself).
+        const rg = app.graph && app.graph.rootGraph;
+        if (rg) return rg;
+    } catch (e) {}
+    try {
         const stack = app.canvas && app.canvas._graph_stack;
         if (stack && stack.length > 0 && stack[0]) return stack[0];
     } catch (e) {}
@@ -520,8 +525,9 @@ const _rcReplaceWithPicker = (node, widget) => {
 
         let valTxt = "None";
         ctx.fillStyle = "#555";
-        if(this.value) {
-            const info = _rcKeyInfo(this.value);
+        const curVal = _rcPV(node, this);   // effective (promotion-aware) value
+        if(curVal) {
+            const info = _rcKeyInfo(curVal);
             if(info && info.found) {
                 valTxt = `${info.title} [${info.key}]`;
                 ctx.fillStyle = "#DDD";
@@ -589,9 +595,8 @@ const _rcReplaceWithPicker = (node, widget) => {
                 if(e.stopPropagation) e.stopPropagation();
                 return true;
             }
-            _rcShowPickerModal(this.value, (k)=>{
-                this.value = k;
-                if(this.callback) { try { this.callback(k); } catch(err) { console.error('Remote picker callback error:', err); } }
+            _rcShowPickerModal(_rcPV(n, this), (k)=>{
+                _rcPSet(n, this, k);
                 n.setDirtyCanvas(true, true);
             });
             if(e.stopImmediatePropagation) e.stopImmediatePropagation();
@@ -614,9 +619,8 @@ newW.onClick = function(pos, n) {
         if (this.hidden) return false;
         try { if (window._rcPickerClosingUntil && performance.now() < window._rcPickerClosingUntil) return true; } catch(e) {}
 
-    _rcShowPickerModal(this.value, (k)=>{
-        this.value = k;
-        if(this.callback) { try { this.callback(k); } catch(err) { console.error('Remote picker callback error:', err); } }
+    _rcShowPickerModal(_rcPV(n, this), (k)=>{
+        _rcPSet(n, this, k);
         n.setDirtyCanvas(true, true);
     });
     return true;
@@ -647,8 +651,300 @@ newW.onClick = function(pos, n) {
     }
 };
 
+// =========================================================
+// 4b. PROMOTED CONTROLS (subgraph widget promotion)
+// =========================================================
+// Since ComfyUI frontend 1.52, promoting a widget to a subgraph node creates a
+// real subgraph input. The value then lives on the OUTER SubgraphNode's host
+// widget (held in the frontend's widget store). The inner widget keeps its old
+// value and its callback never fires. So every read and write of a control goes
+// through its "source" widget: the outermost unlinked host widget when the
+// control is promoted, otherwise the node's own widget. Anything unrecognised
+// (e.g. wired to an ordinary node) falls back to the node's own widget, which is
+// exactly the previous behaviour.
+
+const _RC_CTRL_NAMES = ["mode_select", "node_status", "switch_status", "suppress_enable", "global_enable", "global_mode"];
+
+function _rcIsStackerNode(node) {
+    return !!node && (node.comfyClass || "").toLowerCase() === "remotestacker";
+}
+
+function _rcGetLink(graph, id) {
+    if (!graph || id == null) return null;
+    try {
+        if (typeof graph.getLink === "function") { const l = graph.getLink(id); if (l) return l; }
+        const links = graph._links || graph.links;
+        if (links) return (typeof links.get === "function" ? links.get(id) : links[id]) || null;
+    } catch (e) {}
+    return null;
+}
+
+// Node lookup restricted to ONE graph (no fallback to the root graph, which
+// could return an unrelated node that happens to share the id).
+function _rcNodeIn(graph, id) {
+    if (!graph || id == null) return null;
+    try {
+        if (typeof graph.getNodeById === "function") { const n = graph.getNodeById(id); if (n) return n; }
+    } catch (e) {}
+    const nodes = graph._nodes || graph.nodes || [];
+    return nodes.find(n => n && String(n.id) === String(id)) || null;
+}
+
+function _rcOwnWidget(node, name) {
+    return ((node && node.widgets) || []).find(w => w && w.name === name) || null;
+}
+
+function _rcWidgetInput(node, name) {
+    return ((node && node.inputs) || []).find(i => i && i.widget && i.widget.name === name) || null;
+}
+
+// Instance index: for every node reachable from the root, remember the chain of
+// SubgraphNode instances above it (outermost first). A subgraph definition used
+// by several instances is one shared object, so ONE instance must own it: the
+// first instance reached when walking depth-first in ascending-id order. That
+// is stable (unlike _nodes order: clicking a node reorders _nodes through
+// bringToFront, which would hand control to another instance mid-session).
+// Each graph is walked once per pass. Bookkeeping lives in a WeakMap and local
+// sets, so the walk never writes properties onto node or graph objects.
+const _rcInstMap = new WeakMap();
+let _rcIndexedAt = -1e9;
+function _rcIndexInstances(visit) {
+    _rcIndexedAt = performance.now();
+    const seenNodes = new Set(), seenGraphs = new Set();
+    const idNum = (n) => { const v = Number(n.id); return Number.isFinite(v) ? v : Number.MAX_SAFE_INTEGER; };
+    const walk = (graph, chain, depth) => {
+        if (!graph || depth > 16 || seenGraphs.has(graph)) return;
+        seenGraphs.add(graph);
+        const subs = [];
+        for (const n of (graph._nodes || graph.nodes || [])) {
+            if (!n || (n.graph !== undefined && n.graph !== graph)) continue; // ghost filter
+            if (!seenNodes.has(n)) {
+                seenNodes.add(n);
+                _rcInstMap.set(n, chain);
+                if (visit) { try { visit(n); } catch (e) {} }
+            }
+            const inner = _rcGetInnerGraph(n);
+            if (inner && inner !== graph) subs.push(n);
+        }
+        subs.sort((a, b) => idNum(a) - idNum(b) || String(a.id).localeCompare(String(b.id)));
+        for (const n of subs) walk(_rcGetInnerGraph(n), chain.concat([n]), depth + 1);
+    };
+    walk(_rcRootGraph(), [], 0);
+}
+
+function _rcChainFor(node) {
+    const valid = (c) => {
+        if (!Array.isArray(c)) return false;
+        if (c.length === 0) return !node.graph || node.graph === _rcRootGraph();
+        const last = c[c.length - 1];
+        if (!last || _rcGetInnerGraph(last) !== node.graph) return false;
+        // Every instance in the chain must still be attached (a deleted instance
+        // keeps its subgraph reference but its host values are gone).
+        return c.every(inst => inst && inst.graph && _rcNodeIn(inst.graph, inst.id) === inst);
+    };
+    const c0 = _rcInstMap.get(node);
+    if (valid(c0)) return c0;
+    // Throttled re-index (covers newly created / moved nodes between polls).
+    if (performance.now() - _rcIndexedAt > 100) {
+        _rcIndexInstances(null);
+        const c1 = _rcInstMap.get(node);
+        if (valid(c1)) return c1;
+    }
+    return null;
+}
+
+// The widget whose value is authoritative for control `name` on `node`.
+function _rcSourceWidget(node, name) {
+    const own = _rcOwnWidget(node, name);
+    try {
+        let inp = _rcWidgetInput(node, name);
+        if (!inp || inp.link == null || !node.graph) return own;      // not promoted
+        const chain = _rcChainFor(node);
+        if (!chain || !chain.length) return own;
+        let cur = node, depth = chain.length;
+        for (let guard = 0; guard < 16 && inp && inp.link != null; guard++) {
+            const g = cur.graph;
+            const link = _rcGetLink(g, inp.link);
+            // Only follow links that come from this subgraph's own input node.
+            if (!link || !g || !g.inputNode || String(link.origin_id) !== String(g.inputNode.id)) return own;
+            const inst = chain[depth - 1];
+            if (!inst || _rcGetInnerGraph(inst) !== g) return own;
+            const slots = (g.inputNode && g.inputNode.slots) || g.inputs || [];
+            const sgIn = slots[link.origin_slot];
+            if (!sgIn) return own;
+            const hostInp = (inst.inputs || []).find(i => i && i._subgraphSlot &&
+                (i._subgraphSlot === sgIn || (i._subgraphSlot.id != null && i._subgraphSlot.id === sgIn.id)));
+            if (!hostInp) return own;
+            let hw = hostInp._widget || null;
+            if (!hw && typeof inst.getWidgetFromSlot === "function") hw = inst.getWidgetFromSlot(hostInp) || null;
+            if (hostInp.link == null) return hw || own;
+            // The host input is itself linked. Climb only when the link comes from
+            // the parent graph's own subgraph input (promoted again one level out).
+            // Anything else (e.g. a PrimitiveNode, which writes its value INTO the
+            // host widget) leaves the host widget authoritative.
+            const pg = inst.graph;
+            const plink = _rcGetLink(pg, hostInp.link);
+            if (!plink || !pg || !pg.inputNode || String(plink.origin_id) !== String(pg.inputNode.id)) return hw || own;
+            cur = inst; inp = hostInp; depth--;
+        }
+    } catch (e) {}
+    return own;
+}
+
+// Effective value of a control (dflt when it has no value).
+function _rcCtl(node, name, dflt) {
+    const w = _rcSourceWidget(node, name);
+    const v = w ? w.value : undefined;
+    return (v === undefined || v === null) ? dflt : v;
+}
+
+// Write a control on its source widget. Not promoted: the old behaviour (set
+// the node's own widget, fire its callback unless silent). Promoted: set the
+// outer host widget so the promoted toggle shows the change; the inner widget is
+// left alone (it is ignored while promoted).
+function _rcSetCtl(node, name, v, silent) {
+    const own = _rcOwnWidget(node, name);
+    const src = _rcSourceWidget(node, name);
+    if (!src) return;
+    src.value = v;
+    if (src === own && !silent && typeof own.callback === "function") {
+        try { own.callback(v); } catch (e) {}
+    }
+    try { if (node.setDirtyCanvas) node.setDirtyCanvas(true, true); } catch (e) {}
+}
+
+// Follow a promoted input on a SubgraphNode inward to the Remote/Stacker
+// control it ultimately drives. Returns { node, name } or null.
+function _rcHostTarget(sub, widgetName) {
+    let cur = sub;
+    let inp = ((sub && sub.inputs) || []).find(i => i && i._subgraphSlot &&
+        (i.name === widgetName || (i.widget && i.widget.name === widgetName)));
+    for (let depth = 0; depth < 16 && cur && inp; depth++) {
+        const g = _rcGetInnerGraph(cur);
+        if (!g || !inp._subgraphSlot) return null;
+        let next = null;
+        for (const id of (inp._subgraphSlot.linkIds || [])) {
+            const link = _rcGetLink(g, id);
+            if (!link) continue;
+            const t = _rcNodeIn(g, link.target_id);
+            const tin = t && t.inputs ? t.inputs[link.target_slot] : null;
+            if (!t || !tin) continue;
+            if (_rcIsRemoteNode(t) || _rcIsStackerNode(t)) return { node: t, name: tin.widget ? tin.widget.name : tin.name };
+            if (!next && _rcGetInnerGraph(t) && tin._subgraphSlot) next = { node: t, inp: tin };
+        }
+        if (!next) return null;
+        cur = next.node; inp = next.inp;
+    }
+    return null;
+}
+
+// Effective value of a sibling control for a toggle drawn on `node`. `node` is
+// either the Remote/Stacker itself or an outer SubgraphNode hosting a promoted
+// copy of the toggle; in that case follow the promotion inward.
+function _rcSiblingValue(node, selfName, sibName, dflt) {
+    try {
+        if (_rcIsRemoteNode(node) || _rcIsStackerNode(node)) return _rcCtl(node, sibName, dflt);
+        const tgt = selfName ? _rcHostTarget(node, selfName) : null;
+        if (tgt) return _rcCtl(tgt.node, sibName, dflt);
+        // Fallback (older frontends name promoted copies like "3: mode_select").
+        const own = ((node && node.widgets) || []).find(w => w && String(w.name || "").split(":").pop().trim() === sibName);
+        if (own && own.value != null) return own.value;
+    } catch (e) {}
+    return dflt;
+}
+
+// Target-picker row values. A promoted row reads/writes its source (the outer
+// host widget); everything else behaves exactly as before.
+function _rcPV(node, w) {
+    if (!w) return undefined;
+    return _rcIsRemoteNode(node) ? _rcCtl(node, w.name, w.value) : w.value;
+}
+
+function _rcPSet(node, w, v) {
+    if (!w) return;
+    if (_rcIsRemoteNode(node) && _rcOwnWidget(node, w.name) === w) { _rcSetCtl(node, w.name, v); return; }
+    w.value = v;
+    if (typeof w.callback === "function") { try { w.callback(v); } catch (e) {} }
+}
+
+// "target_node_A2" -> "target_a2", "target_node" -> "target".
+function _rcPickerLabel(raw) {
+    const s = String(raw == null ? "" : raw).split(":").pop().trim();
+    const m = /^target_node_?(.*)$/i.exec(s);
+    return m ? ("target" + (m[1] ? "_" + m[1].toLowerCase() : "")) : s;
+}
+
+// Frontend 1.52+: a promoted target picker appears on the subgraph node as a
+// host widget the frontend cannot draw (its type is unknown to it), and its slot
+// in `widgets` cannot be replaced (widgets is a read-only getter there). So give
+// the host widget object itself the picker's look and click handling: the
+// canvas calls widget.draw() when present, and gives widget.onPointerDown()
+// first refusal on clicks (Nodes 2.0 mode routes clicks the same way).
+function _rcMakeHostPicker(sub, hw) {
+    if (!hw || hw._rcHostPicker) return;
+    try {
+        hw.draw = function (ctx, node, wWidth, y, wHeight) {
+            const H = 22, margin = 14.5, h = wHeight || 26;
+            const boxY = y + (h - H) / 2, textY = boxY + H / 2 + 1, pillW = wWidth - margin * 2;
+            ctx.fillStyle = "#222"; ctx.beginPath(); ctx.roundRect(margin, boxY, pillW, H, H / 2);
+            ctx.fill(); ctx.strokeStyle = "#666"; ctx.lineWidth = 1; ctx.stroke();
+            const label = _rcPickerLabel(this.label ?? this.name);
+            ctx.fillStyle = "#888"; ctx.font = "12px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+            ctx.fillText(label, margin + 10, textY);
+            let valTxt = "None";
+            ctx.fillStyle = "#555";
+            const v = this.value;
+            if (v) {
+                const info = _rcKeyInfo(v);
+                if (info && info.found) { valTxt = `${info.title} [${info.key}]`; ctx.fillStyle = "#DDD"; }
+                else { valTxt = "Missing"; ctx.fillStyle = "#c08080"; }
+            }
+            ctx.textAlign = "right";
+            const availW = pillW - ctx.measureText(label).width - 26;
+            let disp = valTxt;
+            if (ctx.measureText(disp).width > availW && availW > 20) {
+                while (disp.length > 4 && ctx.measureText("… " + disp).width > availW) disp = disp.slice(1);
+                disp = "… " + disp;
+            }
+            ctx.fillText(disp, margin + pillW - 12, textY);
+        };
+        hw.computeSize = function () { return [0, 26]; };
+        hw.onPointerDown = function (pointer, node) {
+            const ev = pointer && pointer.eDown;
+            if (ev && typeof ev.button === "number" && ev.button !== 0) return false;  // right/middle: default
+            try { if (window._rcPickerClosingUntil && performance.now() < window._rcPickerClosingUntil) return true; } catch (e) {}
+            const self = this, host = node || sub;
+            if (!pointer) return false;
+            pointer.onClick = () => {
+                _rcShowPickerModal(self.value, (k) => {
+                    self.value = k;
+                    try { _rcSyncPromoted(); } catch (e) {}
+                    try { host.setDirtyCanvas(true, true); } catch (e) {}
+                });
+            };
+            return true;
+        };
+        hw._rcHostPicker = true;
+    } catch (e) {}
+}
+
+// Turn every promoted target picker on a SubgraphNode into a host picker. Called
+// per frame from processNode (canvas mode) AND from the sync loop: in Nodes 2.0
+// (Vue) mode the canvas never draws nodes, so processNode doesn't run per frame.
+function _rcInstallHostPickers(sub) {
+    try {
+        if (!sub || !Array.isArray(sub.inputs) || !sub.inputs.some(i => i && i._subgraphSlot)) return;
+        for (const w of (sub.widgets || [])) {
+            if (!w || w._rcHostPicker) continue;
+            const ht = _rcHostTarget(sub, w.name);
+            if (ht && _rcIsRemoteNode(ht.node) && /^target_node/i.test(ht.name)) _rcMakeHostPicker(sub, w);
+        }
+    } catch (e) {}
+}
+
 // Draw a single toggle "pill" row at a given y. kind decides text/colour.
-function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label) {
+// selfName = the drawn widget's name (used to find siblings when promoted).
+function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label, selfName) {
     const isPrim = (node.type === "Primitive" || node.comfyClass === "PrimitiveNode");
     const margin = isPrim ? 5 : 14.5;
     const H = 22;
@@ -667,8 +963,7 @@ function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label) {
         const on = !!value;
         if (!on) { valStr = "User"; dot = "#66afef"; }
         else {
-            const mW = (node.widgets || []).find(w => (w.name || "") === "global_mode");
-            const isMute = mW ? !!mW.value : false;
+            const isMute = !!_rcSiblingValue(node, selfName, "global_mode", false);
             valStr = isMute ? "Global Mute" : "Global Bypass";
             dot = isMute ? "#8a8a8a" : "#a080c0";
         }
@@ -679,8 +974,7 @@ function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label) {
         const active = (String(value) === "true" || String(value).toLowerCase() === "active");
         if (active) { valStr = "Active"; dot = "#66afef"; }
         else {
-            const modeW = (node.widgets || []).find(w => (w.name || "") === "mode_select");
-            const isMute = modeW ? !!modeW.value : false;
+            const isMute = !!_rcSiblingValue(node, selfName, "mode_select", false);
             valStr = isMute ? "Muted" : "Bypassed";
             dot = isMute ? "#8a8a8a" : "#a080c0";   // mute grey / bypass purple
         }
@@ -688,16 +982,14 @@ function _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, value, label) {
         const on = (value == null) ? true : !!value;        // suppression on
         if (!on) { valStr = "Active"; dot = "#66afef"; }
         else {
-            const modeW = (node.widgets || []).find(w => (w.name || "") === "mode_select");
-            const isMute = modeW ? !!modeW.value : false;
+            const isMute = !!_rcSiblingValue(node, selfName, "mode_select", false);
             valStr = isMute ? "Muted" : "Bypassed";
             dot = isMute ? "#8a8a8a" : "#a080c0";
         }
     } else if (kind === "switch_status") {
-        const suppressW = (node.widgets || []).find(w => (w.name || "").toLowerCase().includes("suppress"));
-        const modeW = (node.widgets || []).find(w => (w.name || "") === "mode_select");
-        const suppressOn = suppressW ? ((suppressW.value == null) ? true : !!suppressW.value) : true;
-        const isMute = modeW ? !!modeW.value : false;
+        const sup = _rcSiblingValue(node, selfName, "suppress_enable", true);
+        const suppressOn = (sup == null) ? true : !!sup;
+        const isMute = !!_rcSiblingValue(node, selfName, "mode_select", false);
         const supLabel = isMute ? "Muted" : "Bypassed";
         const sideA = !!value;
         if (!suppressOn) { valStr = "A Active · B Active"; }
@@ -721,7 +1013,14 @@ const _rcFixToggleDraw = (w) => {
         const lBase = _internal.replace(/_\d+$/, "");
         let kind = lBase;
         if (lBase === "suppress_enable" || lBase === "suppress") kind = "suppress_as_status";
-        _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, this.value, label);
+        // The internal "suppress" name is never shown to users (a promoted copy
+        // would otherwise carry it onto the subgraph node).
+        if (kind === "suppress_as_status" && /suppress/i.test(label)) label = "node_status";
+        // Show the EFFECTIVE value: while a control is promoted, its inner widget
+        // is stale and the outer host widget holds the real value.
+        let val = this.value;
+        if (_rcIsRemoteNode(node) || _rcIsStackerNode(node)) val = _rcCtl(node, this.name, this.value);
+        _rcDrawToggleAt(ctx, node, wWidth, y, wHeight, kind, val, label, this.name);
     };
     w._rcFixed = true;
 };
@@ -785,7 +1084,7 @@ function _rcApplyReveal(node, kind) {
         let highest = 0;
         for (let p = 0; p < pairCount; p++) {
             const a = pickers[2 * p], b = pickers[2 * p + 1];
-            if ((a && a.value) || (b && b.value)) highest = p + 1;
+            if (_rcPV(node, a) || _rcPV(node, b)) highest = p + 1;
         }
         revealed = Math.min(Math.max(1, revealed, highest), pairCount || 1);
         node.properties._rcRevealed = revealed;
@@ -793,7 +1092,7 @@ function _rcApplyReveal(node, kind) {
         node._rcRevealInfo = { revealed, max: pairCount || _RC_MAX_PAIRS, per: 2 };
     } else {
         let highest = 0;
-        pickers.forEach((w, i) => { if (w.value) highest = i + 1; });
+        pickers.forEach((w, i) => { if (_rcPV(node, w)) highest = i + 1; });
         revealed = Math.min(Math.max(1, revealed, highest), pickers.length || 1);
         node.properties._rcRevealed = revealed;
         pickers.forEach((w, i) => { w.hidden = (i >= revealed); });
@@ -815,7 +1114,7 @@ function _rcRevealAdd(node, kind, delta) {
     const r = Math.max(1, Math.min(info.max, (info.revealed || 1) + delta));
     if (delta < 0) {
         const pickers = _rcTargetPickers(node);
-        const clear = (w) => { if (w) { w.value = ""; if (w.callback) { try { w.callback(""); } catch (e) {} } } };
+        const clear = (w) => _rcPSet(node, w, "");
         if (kind === "ab") { clear(pickers[2 * r]); clear(pickers[2 * r + 1]); }
         else { clear(pickers[r]); }
     }
@@ -834,16 +1133,40 @@ function _rcDeleteRow(node, kind, rowIndex) {
     const per = (kind === "ab") ? 2 : 1;
     const info = node._rcRevealInfo || _rcApplyReveal(node, kind);
     const revealed = info.revealed;
-    const clear = (w) => { if (w) { w.value = ""; if (w.callback) { try { w.callback(""); } catch (e) {} } } };
-    const setVal = (w, v) => { if (w) { w.value = v; if (w.callback) { try { w.callback(v); } catch (e) {} } } };
+    // Rows may be promoted: read each row on its source widget, and work out ALL
+    // new values from a snapshot first so a shift never reads a value it has
+    // already overwritten.
+    const vals = pickers.map(w => _rcPV(node, w));
+    const nv = vals.slice();
+    const touched = new Set();
     if (revealed <= 1) {
-        for (let s = 0; s < per; s++) clear(pickers[s]);
+        for (let s = 0; s < per; s++) { nv[s] = ""; touched.add(s); }
     } else {
         for (let r = rowIndex; r < revealed - 1; r++) {
-            for (let s = 0; s < per; s++) setVal(pickers[r * per + s], pickers[(r + 1) * per + s] ? pickers[(r + 1) * per + s].value : "");
+            for (let s = 0; s < per; s++) {
+                const i = r * per + s;
+                nv[i] = pickers[(r + 1) * per + s] ? (vals[(r + 1) * per + s] || "") : "";
+                touched.add(i);
+            }
         }
-        for (let s = 0; s < per; s++) clear(pickers[(revealed - 1) * per + s]);
+        for (let s = 0; s < per; s++) { nv[(revealed - 1) * per + s] = ""; touched.add((revealed - 1) * per + s); }
         node.properties._rcRevealed = revealed - 1;
+    }
+    // Write each source once. Rows sharing one source (one subgraph input wired
+    // into two rows) can only take a value they all agree on; otherwise that
+    // source is left unchanged rather than silently dropping a target.
+    const groups = new Map();
+    pickers.forEach((w, i) => {
+        if (!w) return;
+        const src = _rcSourceWidget(node, w.name) || w;
+        if (!groups.has(src)) groups.set(src, []);
+        groups.get(src).push(i);
+    });
+    for (const idxs of groups.values()) {
+        if (!idxs.some(i => touched.has(i))) continue;
+        const v = nv[idxs[0]];
+        if (idxs.every(i => nv[i] === v)) _rcPSet(node, pickers[idxs[0]], v);
+        else console.warn("[mute-bypass] rows share one promoted input; left unchanged:", idxs.map(i => pickers[i].name).join(", "));
     }
     _rcApplyReveal(node, kind);
     try { node.setSize([node.size[0], node.computeSize()[1]]); } catch (e) {}
@@ -924,9 +1247,14 @@ const _rcEnforceLogic = (node) => {
     const switchW = node.widgets.find(w => w.name === "node_status" || w.name === "switch_status");
     const modeW = node.widgets.find(w => w.name === "mode_select");
     if(!switchW || !modeW) return;
+    // Effective control values: a promoted control's value lives on the outer
+    // subgraph node (see 4b), so never read the inner widgets directly here.
+    const switchVal = _rcCtl(node, switchW.name, switchW.value);
+    const modeVal = _rcCtl(node, "mode_select", modeW.value);
     // A/B suppression on/off (default on when the widget is absent, e.g. Single).
     const suppressW = node.widgets.find(w => w.name === "suppress_enable");
-    const suppressOn = (suppressW && suppressW.value != null) ? !!suppressW.value : true;
+    const supVal = suppressW ? _rcCtl(node, "suppress_enable", suppressW.value) : null;
+    const suppressOn = (supVal != null) ? !!supVal : true;
 
     const targets = node.widgets.filter(w => w.type === "REMOTE_PICKER");
     const isSwitch = node.comfyClass.includes("Switch");
@@ -934,22 +1262,25 @@ const _rcEnforceLogic = (node) => {
 
     const getMode = (active) => {
         if(active) return 0;
-        const m = typeof modeW.value === "boolean" ? (modeW.value ? "Mute" : "Bypass") : modeW.value;
+        const m = typeof modeVal === "boolean" ? (modeVal ? "Mute" : "Bypass") : modeVal;
         return (m === "Mute") ? 2 : 4;
     };
 
     for(const w of targets) {
-        if(!w.value) continue;
-        const target = _rcResolveTargetWidget(node, w);
+        // A promoted target picker's value lives on the outer subgraph node (it
+        // is edited there or on this node's row; both write the same source).
+        const srcW = _rcSourceWidget(node, w.name) || w;
+        if(!srcW.value) continue;
+        const target = _rcResolveTargetWidget(node, srcW);
         if(!target) continue;
         let active = false;
         if(isSwitch) {
             if(!suppressOn) active = true;               // suppression off → both sides run
-            else if(w.name.includes("_A")) active = switchW.value;
-            else if(w.name.includes("_B")) active = !switchW.value;
+            else if(w.name.includes("_A")) active = !!switchVal;
+            else if(w.name.includes("_B")) active = !switchVal;
             else active = true;
         } else {
-            active = switchW.value;
+            active = !!switchVal;
         }
         const mode = getMode(active);
         if(target.mode !== mode) {
@@ -1018,40 +1349,38 @@ function _rcResolveKey(key) {
     return _rcFindNodeGlobal(key);
 }
 
+// Reads/writes below go through _rcCtl / _rcSetCtl so a Remote node whose
+// controls are promoted to a subgraph is read from, and written to, the outer
+// toggles. That keeps the Stacker override and promoted toggles in agreement.
 function _rcGetRemoteNodeState(remoteNode) {
     if (!remoteNode || !remoteNode.widgets) return { active: true, mode: "bypass" };
     const kind = _rcRemoteKind(remoteNode);
-    const modeW = remoteNode.widgets.find(w => w.name === "mode_select");
-    const mode = modeW ? (modeW.value ? "mute" : "bypass") : "bypass";
+    const hasMode = !!_rcOwnWidget(remoteNode, "mode_select");
+    const mode = hasMode ? (_rcCtl(remoteNode, "mode_select", false) ? "mute" : "bypass") : "bypass";
     if (kind === "ab" || kind === "aabb") {
         // A/B: "active" == suppression off; also remember the side so global
         // override can restore it exactly.
-        const supW = remoteNode.widgets.find(w => (w.name || "").toLowerCase().includes("suppress"));
-        const sideW = remoteNode.widgets.find(w => w.name === "switch_status");
-        const suppress = supW ? ((supW.value == null) ? true : !!supW.value) : true;
-        return { active: !suppress, mode, side: sideW ? !!sideW.value : true, ab: true };
+        const hasSup = !!_rcOwnWidget(remoteNode, "suppress_enable");
+        const hasSide = !!_rcOwnWidget(remoteNode, "switch_status");
+        const sup = hasSup ? _rcCtl(remoteNode, "suppress_enable", true) : true;
+        const suppress = (sup == null) ? true : !!sup;
+        return { active: !suppress, mode, side: hasSide ? !!_rcCtl(remoteNode, "switch_status", true) : true, ab: true };
     }
-    const statusW = remoteNode.widgets.find(w => w.name === "node_status");
-    return { active: statusW ? !!statusW.value : true, mode, ab: false };
+    const hasStatus = !!_rcOwnWidget(remoteNode, "node_status");
+    return { active: hasStatus ? !!_rcCtl(remoteNode, "node_status", true) : true, mode, ab: false };
 }
 
 function _rcSetRemoteNodeState(remoteNode, active, mode, state) {
     if (!remoteNode || !remoteNode.widgets) return;
     const kind = _rcRemoteKind(remoteNode);
-    const modeW = remoteNode.widgets.find(w => w.name === "mode_select");
-    const setW = (w, v) => { if (w) { w.value = v; if (w.callback) try { w.callback(v); } catch(e) {} } };
-    if (modeW) setW(modeW, (mode === "mute"));
+    const setC = (name, v) => { if (_rcOwnWidget(remoteNode, name)) _rcSetCtl(remoteNode, name, v); };
+    setC("mode_select", (mode === "mute"));
     if (kind === "ab" || kind === "aabb") {
         // active == suppression off. Restore the side too when we have it.
-        const supW = remoteNode.widgets.find(w => (w.name || "").toLowerCase().includes("suppress"));
-        setW(supW, !active);
-        if (state && typeof state.side === "boolean") {
-            const sideW = remoteNode.widgets.find(w => w.name === "switch_status");
-            setW(sideW, state.side);
-        }
+        setC("suppress_enable", !active);
+        if (state && typeof state.side === "boolean") setC("switch_status", state.side);
     } else {
-        const statusW = remoteNode.widgets.find(w => w.name === "node_status");
-        setW(statusW, active);
+        setC("node_status", active);
     }
     _rcEnforceLogic(remoteNode);
     if (remoteNode.setDirtyCanvas) remoteNode.setDirtyCanvas(true, true);
@@ -1232,13 +1561,18 @@ function _rcStackerSetMode(stackerNode, mode) {
         _rcStackerApplyGlobal(stackerNode);
     }
 
-    // Keep the promotable override toggles in sync.
+    // Keep the promotable override toggles in sync (on their source widget, so a
+    // promoted copy on a subgraph node shows the change). Silent: no callbacks,
+    // which would re-enter this function.
     const _mws = stackerNode._rcModeWidgets;
     if (_mws && _mws[0] && _mws[1]) {
         const cur = stackerNode.properties._rcStackerMode || "user";
         const wantEnable = (cur !== "user");
-        if (_mws[0].value !== wantEnable) _mws[0].value = wantEnable;
-        if (wantEnable) { const wantMute = (cur === "mute"); if (_mws[1].value !== wantMute) _mws[1].value = wantMute; }
+        if (_rcCtl(stackerNode, "global_enable", _mws[0].value) !== wantEnable) _rcSetCtl(stackerNode, "global_enable", wantEnable, true);
+        if (wantEnable) {
+            const wantMute = (cur === "mute");
+            if (_rcCtl(stackerNode, "global_mode", _mws[1].value) !== wantMute) _rcSetCtl(stackerNode, "global_mode", wantMute, true);
+        }
     }
 
     if (stackerNode.setDirtyCanvas) stackerNode.setDirtyCanvas(true, true);
@@ -1513,12 +1847,9 @@ function _rcStackerDraw(stackerNode, ctx) {
         const isAB = (_rkind === "ab" || _rkind === "aabb");
         let state, abSideA = true;
         if (isAB) {
-            const sideW = remoteNode.widgets.find(w => w.name === "switch_status");
-            const supW = remoteNode.widgets.find(w => (w.name || "").toLowerCase().includes("suppress"));
-            const modeW = remoteNode.widgets.find(w => w.name === "mode_select");
-            abSideA = sideW ? !!sideW.value : true;
-            const suppress = supW ? ((supW.value == null) ? true : !!supW.value) : true;
-            state = { active: !suppress, mode: modeW ? (modeW.value ? "mute" : "bypass") : "bypass" };
+            const st = _rcGetRemoteNodeState(remoteNode);   // effective (promotion-aware)
+            abSideA = (typeof st.side === "boolean") ? st.side : true;
+            state = { active: st.active, mode: st.mode };
         } else {
             state = _rcGetRemoteNodeState(remoteNode);
         }
@@ -1737,8 +2068,10 @@ function _rcStackerMouseDown(stackerNode, e, pos) {
                 if ((stackerNode.properties._rcStackerMode || "user") !== "user") return true;
                 const rn = _rcResolveKey(area.remoteKey);
                 if (rn && rn.widgets) {
-                    const w = rn.widgets.find(x => x.name === "switch_status");
-                    if (w) { w.value = !w.value; if (w.callback) try { w.callback(w.value); } catch(e){} _rcEnforceLogic(rn); }
+                    if (_rcOwnWidget(rn, "switch_status")) {
+                        _rcSetCtl(rn, "switch_status", !_rcCtl(rn, "switch_status", true));
+                        _rcEnforceLogic(rn);
+                    }
                     stackerNode.setDirtyCanvas(true, true);
                 }
                 return true;
@@ -1749,8 +2082,11 @@ function _rcStackerMouseDown(stackerNode, e, pos) {
                 if ((stackerNode.properties._rcStackerMode || "user") !== "user") return true;
                 const rn = _rcResolveKey(area.remoteKey);
                 if (rn && rn.widgets) {
-                    const w = rn.widgets.find(x => (x.name || "").toLowerCase().includes("suppress"));
-                    if (w) { const cur = (w.value == null) ? true : !!w.value; w.value = !cur; if (w.callback) try { w.callback(w.value); } catch(e){} _rcEnforceLogic(rn); }
+                    if (_rcOwnWidget(rn, "suppress_enable")) {
+                        const cur = _rcCtl(rn, "suppress_enable", true);
+                        _rcSetCtl(rn, "suppress_enable", !((cur == null) ? true : !!cur));
+                        _rcEnforceLogic(rn);
+                    }
                     stackerNode.setDirtyCanvas(true, true);
                 }
                 return true;
@@ -1762,8 +2098,10 @@ function _rcStackerMouseDown(stackerNode, e, pos) {
                 if (globalMode !== "user") return true;
                 const rn = _rcResolveKey(area.remoteKey);
                 if (rn && _rcIsRemoteNode(rn) && rn.widgets) {
-                    const modeW = rn.widgets.find(w => w.name === "mode_select");
-                    if (modeW) { modeW.value = !modeW.value; if (modeW.callback) try { modeW.callback(modeW.value); } catch(e){} _rcEnforceLogic(rn); }
+                    if (_rcOwnWidget(rn, "mode_select")) {
+                        _rcSetCtl(rn, "mode_select", !_rcCtl(rn, "mode_select", false));
+                        _rcEnforceLogic(rn);
+                    }
                     stackerNode.setDirtyCanvas(true, true);
                 }
                 return true;
@@ -1778,6 +2116,19 @@ function _rcStackerMouseDown(stackerNode, e, pos) {
 // =========================================================
 // 5g. STACKER — Node Setup
 // =========================================================
+
+// Reconcile: a promoted toggle is flipped on the outer subgraph node without
+// firing any callback here, so derive the mode from the EFFECTIVE values of the
+// two override toggles and apply it when it differs.
+function _rcStackerReconcile(node) {
+    const _mws = node && node._rcModeWidgets;
+    if (!_mws || !_mws[0] || !_mws[1] || !node.properties) return;
+    const en = _rcCtl(node, "global_enable", _mws[0].value);
+    const md = _rcCtl(node, "global_mode", _mws[1].value);
+    if (typeof en !== "boolean") return;
+    const derived = en ? (md ? "mute" : "bypass") : "user";
+    if (derived !== (node.properties._rcStackerMode || "user")) _rcStackerSetMode(node, derived);
+}
 
 function _rcInitStacker(node) {
     if (node._rcStackerInit) return;
@@ -1841,7 +2192,8 @@ function _rcInitStacker(node) {
         _rcFixToggleDraw(enableW);
         _rcFixToggleDraw(modeSelW);
         // Any change on either toggle derives and applies the mode.
-        const derive = () => enableW.value ? (modeSelW.value ? "mute" : "bypass") : "user";
+        const derive = () => _rcCtl(node, "global_enable", enableW.value)
+            ? (_rcCtl(node, "global_mode", modeSelW.value) ? "mute" : "bypass") : "user";
         for (const w of [enableW, modeSelW]) {
             if (!w._rcStkHooked) {
                 const cb = w.callback;
@@ -1856,13 +2208,7 @@ function _rcInitStacker(node) {
         try {
             _rcStackerValidateKeys(node);
             if (node.properties._rcAutoAdd) _rcStackerAutoClaim(node);
-            // Reconcile: a promoted toggle may have been flipped through ComfyUI's
-            // proxy/link without firing callbacks — derive and apply.
-            const _mws = node._rcModeWidgets;
-            if (_mws && _mws[0] && _mws[1] && typeof _mws[0].value === "boolean") {
-                const derived = _mws[0].value ? (_mws[1].value ? "mute" : "bypass") : "user";
-                if (derived !== (node.properties._rcStackerMode || "user")) _rcStackerSetMode(node, derived);
-            }
+            _rcStackerReconcile(node);
         } catch(e) {}
     }, 500);
 
@@ -1932,7 +2278,8 @@ const processNode = (node) => {
     // 2. Remote Node
     const cc = (node.comfyClass || "").toLowerCase();
     const tt = (node.title || "").toLowerCase();
-    if (cc.startsWith("remote") || tt.startsWith("remote")) {
+    // (A subgraph node titled "Remote ..." is a container, not one of ours.)
+    if ((cc.startsWith("remote") || tt.startsWith("remote")) && !_rcGetInnerGraph(node)) {
         if (node.widgets) {
             // Capture the original (declaration-order) widget names ONCE, before any
             // custom widgets are added or display reordering happens. onSerialize then
@@ -2023,14 +2370,22 @@ try {
     if (_lname0 === "mode_select" || _lname0 === "switch_status" || _lname0 === "node_status") {
         _rcFixToggleDraw(w);
     }
-    // Promoted stacker override toggles (and legacy stacker_mode): leave them
-    // ALONE — they are PromotedWidgetViews projecting native toggles. They must
-    // not fall through to the picker conversion below.
-    if (_lname0 === "stacker_mode" || _lname0 === "global_enable" || _lname0 === "global_mode") {
+    // Promoted A/B node_status (internal name suppress_enable) and Stacker
+    // override toggles: custom pill only when the promotion really leads to one
+    // of our nodes, and they must never fall through to the picker conversion
+    // below (they are toggles, not targets).
+    if (_lname0 === "suppress_enable" || _lname0 === "global_enable" || _lname0 === "global_mode") {
+        if (!w._rcFixed && _rcHostTarget(node, w.name)) _rcFixToggleDraw(w);
         _rcSkipConvert = true;
     }
+    if (_lname0 === "stacker_mode") _rcSkipConvert = true;
 } catch(e) {}
             if (_rcSkipConvert) return;
+
+            // Frontend 1.52+ promoted target picker: make the host widget object
+            // itself a picker (its array slot can't be swapped; see 4b).
+            _rcInstallHostPickers(node);
+            if (w._rcHostPicker) return;
 
             if (w.type === "REMOTE_PICKER") return;
 
@@ -2089,8 +2444,57 @@ try {
     }
 };
 
+// Promoted controls are flipped on the outer subgraph node without firing any
+// callback we can hook, so poll: re-enforce every Remote node whose EFFECTIVE
+// control values changed since last time, and let Stackers re-derive their
+// override. Cheap: one walk of the graph tree, enforce only on change.
+function _rcSyncPromoted() {
+    const remotes = [], stackers = [], subs = [];
+    _rcIndexInstances(n => {
+        if (_rcIsRemoteNode(n)) remotes.push(n);
+        else if (_rcIsStackerNode(n)) stackers.push(n);
+        else if (_rcGetInnerGraph(n)) subs.push(n);
+    });
+    for (const s of subs) _rcInstallHostPickers(s);
+    for (const n of remotes) {
+        if (!n.widgets) continue;
+        let sig = "";
+        for (const nm of _RC_CTRL_NAMES) {
+            const own = _rcOwnWidget(n, nm);
+            if (own) sig += nm + "=" + String(_rcCtl(n, nm, own.value)) + ";";
+        }
+        // Promoted target pickers can be re-pointed from the subgraph node.
+        for (const w of n.widgets) {
+            if (w && w.type === "REMOTE_PICKER" && w.name) sig += w.name + "=" + String(_rcPV(n, w)) + ";";
+        }
+        if (sig !== n._rcCtlSig) {
+            n._rcCtlSig = sig;
+            try { _rcEnforceLogic(n); } catch (e) {}
+        }
+    }
+    for (const s of stackers) { try { _rcStackerReconcile(s); } catch (e) {} }
+}
+
 app.registerExtension({
     name: "Comfy.RemoteControl",
+
+    setup() {
+        // Visual + logical sync for controls flipped through subgraph promotion.
+        if (!window.__rcPromotedSyncTimer) {
+            window.__rcPromotedSyncTimer = setInterval(() => { try { _rcSyncPromoted(); } catch (e) {} }, 250);
+        }
+        // Guarantee correct target modes at queue time, closing the poll's gap
+        // (queuePrompt builds the prompt through app.graphToPrompt).
+        if (typeof app.graphToPrompt === "function" && !app.graphToPrompt.__rcWrapped) {
+            const orig = app.graphToPrompt;
+            const wrapped = async function (...args) {
+                try { _rcSyncPromoted(); } catch (e) {}
+                return orig.apply(this, args);
+            };
+            wrapped.__rcWrapped = true;
+            app.graphToPrompt = wrapped;
+        }
+    },
     
     // Runtime Hook
     async nodeCreated(node) {
@@ -2120,6 +2524,8 @@ app.registerExtension({
                         } catch(e) {}
                     }
                 }
+                // Apply promoted control values straight after load.
+                try { _rcSyncPromoted(); } catch(e) {}
             }, 300);
         }
     }
