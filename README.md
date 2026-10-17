@@ -8,6 +8,8 @@
 
 ⭐ If these nodes save you time, please give them a star to show your appreciation, a star also helps other ComfyUI users find them.
 
+**10/15/2026 — Version 3.0.3** - Please make sure you upgrade to the latest version for better compatibility with linking and promoting the widgets to the Subgraph front - See the Changelog at the bottom of the page for more details.
+
 **Mute or bypass any node in your workflow by its node ID or Name** — even nodes buried inside nested Subgraphs — from a single compact control node. The node toggles, and target pickers, are standard ComfyUI widgets, so they can be **linked or promoted to Subgraph nodes** and used as top-level switches.
 
 This pack includes **5 custom nodes**:
