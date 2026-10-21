@@ -138,7 +138,7 @@ Same as the A/B node, but switches 2 fixed pairs at once. Kept only for old work
 * **Stacker overrides** on promoted nodes now hold and restore correctly instead of being undone.
 * **Fix:** a subgraph whose title starts with "Remote" was mistaken for a Remote node.
 
-Thanks to [@Deaquay](https://github.com) for tracking down the root cause in #8.
+Thanks to [@Deaquay](https://github.com/Deaquay) for tracking down the root cause.
 
 **08/21/2026 — Version 3.0.2**
 
